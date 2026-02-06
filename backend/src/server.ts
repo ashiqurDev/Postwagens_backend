@@ -3,6 +3,7 @@ import { Server } from 'http';
 import app from "./app";
 import envVars from "../src/config/env";
 import { connectRedis } from "./config/redis.config";
+import connectDB from "../src/config/db";
 
 let server: Server;
 dotenv.config();
@@ -11,7 +12,7 @@ const PORT = envVars.PORT || 3002;
 
 const startServer = async () => {
   try {
-
+    await connectDB();
     server = app.listen(PORT, () => {
       console.log(`Server started on http://localhost:${PORT}`);
     });
