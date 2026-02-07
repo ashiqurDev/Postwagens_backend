@@ -11,28 +11,6 @@ import { randomOTPGenerator } from '../../utils/randomOTPGenerator';
 import { redisClient } from '../../config/redis.config';
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 
-// REGISTER USER
-const registerService = async (name: string, email: string, password: string) => {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      throw new AppError(StatusCodes.BAD_REQUEST, 'User already exists!');
-    }
-  
-    const user = await User.create({
-      fullName: name,
-      email,
-      password,
-      auths: [
-        {
-          provider: 'credentials',
-          providerId: email,
-        },
-      ],
-    });
-  
-    return user;
-  };
-
 // GET NEW ACCESS TOKEN
 const getNewAccessTokenService = async (refreshToken: string) => {
   if (!refreshToken) {
@@ -226,7 +204,6 @@ const resetPasswordService = async (token: string, newPassword: string) => {
 
 
 export const authService = {
-  registerService,
   getNewAccessTokenService,
   changePasswordService,
   forgetPasswrodService,

@@ -42,6 +42,10 @@ interface EnvInterfaces {
   APPLE_TEAM_ID: string;
   APPLE_KEY_ID: string;
 
+  CLOUDINARY_NAME?: string;
+  CLOUDINARY_API_KEY?: string;
+  CLOUDINARY_SECRET?: string;
+
 }
 
 const loadEnvVarbles = (): EnvInterfaces => {
@@ -85,6 +89,12 @@ const loadEnvVarbles = (): EnvInterfaces => {
     'APPLE_CALLBACK_URL',
     'APPLE_TEAM_ID',
     'APPLE_KEY_ID',
+
+    'CLOUDINARY_NAME',
+    'CLOUDINARY_API_KEY',
+    'CLOUDINARY_SECRET',
+
+
 
 
     
@@ -135,6 +145,9 @@ const loadEnvVarbles = (): EnvInterfaces => {
     APPLE_CALLBACK_URL: process.env.APPLE_CALLBACK_URL as string,
     APPLE_TEAM_ID: process.env.APPLE_TEAM_ID as string,
     APPLE_KEY_ID: process.env.APPLE_KEY_ID as string,
+    CLOUDINARY_NAME: process.env.CLOUDINARY_NAME as string,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
+    CLOUDINARY_SECRET: process.env.CLOUDINARY_SECRET as string,
     
   };
 };

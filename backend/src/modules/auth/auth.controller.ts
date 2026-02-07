@@ -11,18 +11,6 @@ import { authService } from './auth.service';
 import { JwtPayload } from 'jsonwebtoken';
 import env from '../../config/env';
 
-// register user
-const register = CatchAsync(async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
-  const result = await authService.registerService(name, email, password);
-  
-  SendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'User registered successfully!',
-    data: result,
-  });
-});
 
 // Login User
 const credentialsLogin = CatchAsync(
@@ -163,7 +151,6 @@ const appleCallback = CatchAsync(
 );
 
 export const authController = {
-  register,
   credentialsLogin,
   getNeAccessToken,
   changePassword,

@@ -8,7 +8,6 @@ import passport from 'passport';
 
 const router = Router();
 
-router.post('/register', authController.register);
 router.post('/login', authController.credentialsLogin);
 router.post('/refresh', authController.getNeAccessToken);
 router.post(
