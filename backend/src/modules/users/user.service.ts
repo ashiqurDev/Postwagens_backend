@@ -219,135 +219,124 @@ const filter = {};
 // };
 
 // USER UPDATE
-// const userUpdateService = async (
-//   userId: string,
-//   payload: Partial<IUser>,
-//   decodedToken: JwtPayload
-// ) => {
-//   const user = await User.findById(userId);
-//   if (!user) {
-//     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-//   }
+const userUpdateService = async (
+  userId: string,
+  payload: Partial<IUser>,
+  decodedToken: JwtPayload
+) => {
+  console.log('payload: ', payload);
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
 
-//   // USER & ORGANIZER can ONLY update their own profile - Only admin can update others
-//   if (
-//     (decodedToken.role === Role.USER || decodedToken.role === Role.ORGANIZER) &&
-//     decodedToken.userId !== userId
-//   ) {
-//     throw new AppError(
-//       StatusCodes.FORBIDDEN,
-//       'You can only update your own profile'
-//     );
-//   }
+  // USER & ORGANIZER can ONLY update their own profile - Only admin can update others
+  // if (
+  //   (decodedToken.role === Role.USER || decodedToken.role === Role.ORGANIZER) &&
+  //   decodedToken.userId !== userId
+  // ) {
+  //   throw new AppError(
+  //     StatusCodes.FORBIDDEN,
+  //     'You can only update your own profile'
+  //   );
+  // }
 
-//   // Delete previous avatar from cloudinary
-//   if (payload.avatar) {
-//     deleteImageFromCLoudinary(user?.avatar as string);
-//   }
+  // Delete previous avatar from cloudinary
+  if (payload.avatar && user.avatar) {
+    deleteImageFromCLoudinary(user?.avatar as string);
+  }
 
-//   // Block password update from this route
-//   if (payload.password) {
-//     throw new AppError(
-//       StatusCodes.BAD_REQUEST,
-//       "You can't update your password from this route!"
-//     );
-//   }
+  // Block password update from this route
+  if (payload.password) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "You can't update your password from this route!"
+    );
+  }
 
-//   // Role update protection
-//   if (payload.role) {
-//     if (
-//       decodedToken.role === Role.USER ||
-//       decodedToken.role === Role.ORGANIZER
-//     ) {
-//       throw new AppError(
-//         StatusCodes.FORBIDDEN,
-//         'You are not allowed to update roles!'
-//       );
-//     }
-//   }
+  // Role update protection
+  if (payload.role) {
+    if (
+      decodedToken.role === Role.USER ||
+      decodedToken.role === Role.ADMIN
+    ) {
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        'You are not allowed to update roles!'
+      );
+    }
+  }
 
-//   // USER & ORGANIZER cannot update isActive, isDeleted, isVerified
-//   if (
-//     payload?.isActive !== undefined ||
-//     payload?.isDeleted !== undefined ||
-//     payload?.isVerified !== undefined
-//   ) {
-//     if (
-//       decodedToken.role === Role.USER ||
-//       decodedToken.role === Role.ORGANIZER
-//     ) {
-//       throw new AppError(
-//         StatusCodes.FORBIDDEN,
-//         'You are not allowed to update account status!'
-//       );
-//     }
-//   }
+  // USER & ORGANIZER cannot update isActive, isDeleted, isVerified
+  if (
+    payload?.isActive !== undefined ||
+    payload?.isDeleted !== undefined ||
+    payload?.isVerified !== undefined
+  ) {
+    if (
+      decodedToken.role === Role.USER ||
+      decodedToken.role === Role.ADMIN
+    ) {
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        'You are not allowed to update account status!'
+      );
+    }
+  }
 
-//   // PREVENT BLOCKED - INACTIVE, IF USER IS ADMIN
-//   if (
-//     payload.isActive === IsActive.INACTIVE ||
-//     payload.isActive === IsActive.BLOCKED ||
-//     payload.isDeleted === true
-//   ) {
-//     if (user.role === Role.ADMIN) {
-//       throw new AppError(
-//         StatusCodes.FORBIDDEN,
-//         "Admin can't disabled himself!"
-//       );
-//     }
-//   }
+  // PREVENT BLOCKED - INACTIVE, IF USER IS ADMIN
+  if (
+    payload.isActive === IsActive.INACTIVE ||
+    payload.isActive === IsActive.BLOCKED ||
+    payload.isDeleted === true
+  ) {
+    if (user.role === Role.ADMIN) {
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        "Admin can't disabled himself!"
+      );
+    }
+  }
 
-//   // Update Location by coordinates
-//   if (payload.coord) {
-//     const { lat, long } = payload.coord;
-//     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${env.GOOGLE_MAP_API_KEY}`;
-//     const response = await axios.get(url);
-//     const address = response.data.results[0].formatted_address
-//       .split(', ')
-//       .slice(-2)
-//       .join(', ');
+  // Update Locations
+  if(payload.location){
+    user.location = payload.location;
+  }
 
-//     // update location field
-//     payload.location = address;
-//   }
+  
 
-//   // FIELD WHITELISTING for USER & ORGANIZER
-//   if (decodedToken.role === Role.USER || decodedToken.role === Role.ORGANIZER) {
-//     const allowedUpdates = [
-//       'fullName',
-//       'avatar',
-//       'gender',
-//       'phone',
-//       'interests',
-//       'coord',
-//       'fcmToken',
-//       'bio',
-//       'instagramHandle',
-//       'location',
-//     ];
+  // FIELD WHITELISTING for USER & ORGANIZER
+  if (decodedToken.role === Role.USER || decodedToken.role === Role.ADMIN) {
+    const allowedUpdates = [
+      'fullName',
+      'avatar',
+      'fcmToken',
+      'bio',
+      'location',
+    ];
 
-//     Object.keys(payload).forEach((key) => {
-//       if (!allowedUpdates.includes(key)) {
-//         throw new AppError(
-//           StatusCodes.FORBIDDEN,
-//           `You are not allowed to update: ${key}`
-//         );
-//       }
-//     });
-//   }
+    Object.keys(payload).forEach((key) => {
+      if (!allowedUpdates.includes(key)) {
+        throw new AppError(
+          StatusCodes.FORBIDDEN,
+          `You are not allowed to update: ${key}`
+        );
+      }
+    });
+  }
 
-//   // Update User
-//   const updatedUser = await User.findByIdAndUpdate(
-//     new Types.ObjectId(userId),
-//     payload,
-//     {
-//       new: true,
-//       runValidators: true,
-//     }
-//   );
+  // Update User
+  const updatedUser = await User.findByIdAndUpdate(
+    new Types.ObjectId(userId),
+    payload,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
-//   return updatedUser;
-// };
+  return updatedUser;
+};
 
 // DELETE USER
 const userDeleteService = async (userId: string, decodedToken: JwtPayload) => {
@@ -435,7 +424,7 @@ export const userServices = {
   verifyOTPService,
   verifyUserService,
 //   getMeService,
-//   userUpdateService,
+  userUpdateService,
   userDeleteService,
   getAllUserService,
 //   getProfileService,

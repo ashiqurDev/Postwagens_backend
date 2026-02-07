@@ -53,12 +53,7 @@ export const userUpdateZodSchema = z.object({
     .optional(),
   isDeleted: z.boolean().optional(),
   isVerified: z.boolean().optional(),
-  coord: z
-    .object({
-      lat: z.number(),
-      long: z.number(),
-    })
-    .optional(),
+  location: z.string().optional(),
 });
 
 export const passwordZodSchema = z.object({

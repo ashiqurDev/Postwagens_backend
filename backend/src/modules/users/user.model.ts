@@ -47,11 +47,8 @@ const userSchema = new mongoose.Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true },
     avatar: { type: String },
     password: { type: String, select: false },
-    gender: { type: String },
     fcmToken: { type: String },
-    phone: { type: String },
-    stripeAccountId: { type: String },
-    badge: { type: Boolean, default: false },
+    verifiedBadge: { type: Boolean, default: false },
     isActive: {
       type: String,
       enum: [...Object.values(IsActive)],
@@ -62,10 +59,6 @@ const userSchema = new mongoose.Schema<IUser>(
     role: { type: String, enum: [...Object.values(Role)], default: Role.USER },
     auths: [authProviderSchema],
     location: { type: String },
-    coord: {
-      type: { lat: { type: Number }, long: { type: Number } },
-      _id: false,
-    },
   },
   {
     versionKey: false,

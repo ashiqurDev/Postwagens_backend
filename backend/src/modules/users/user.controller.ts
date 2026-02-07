@@ -3,6 +3,7 @@ import { CatchAsync } from '../../utils/CatchAsync';
 import { SendResponse } from '../../utils/SendResponse';
 import { userServices } from './user.service';
 import { JwtPayload } from 'jsonwebtoken';
+import { uploadBufferToCloudinary } from '../../config/cloudinary.config';
 
 // REGISTER ACCOUNT
 const registerUser = CatchAsync(async (req: Request, res: Response) => {
@@ -57,29 +58,37 @@ const getAllUser = CatchAsync(async (req: Request, res: Response) => {
 // });
 
 // USER UPDATE
-// const userUpdate = CatchAsync(async (req: Request, res: Response) => {
-//   const userId = req.params.userId;
-//   const body = req.body;
-//   const decodedToken = req.user as JwtPayload;
+const userUpdate = CatchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const body = req.body;
+  const decodedToken = req.user as JwtPayload;
 
-//   const payload = {
-//     ...body,
-//     avatar: req.file?.path as string,
-//   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload: { [key: string]: any } = {
+    ...body,
+  };
 
-//   const result = await userServices.userUpdateService(
-//     userId,
-//     payload,
-//     decodedToken
-//   );
+  if (req.file) {
+    const avatar = await uploadBufferToCloudinary(
+      req.file.buffer,
+      req.file.originalname
+    );
+    payload.avatar = avatar?.secure_url;
+  }
 
-//   SendResponse(res, {
-//     success: true,
-//     statusCode: 200,
-//     message: 'User updated successful!',
-//     data: result,
-//   });
-// });
+  const result = await userServices.userUpdateService(
+    userId,
+    payload,
+    decodedToken
+  );
+
+  SendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'User updated successful!',
+    data: result,
+  });
+});
 
 // USER UPDATE
 const userDelete = CatchAsync(async (req: Request, res: Response) => {
@@ -127,9 +136,9 @@ export const userControllers = {
   registerUser,
   userVefification,
   verifyOTP,
-//   getMe,
-//   userUpdate,
+  //   getMe,
+  userUpdate,
   userDelete,
   getAllUser,
-//   getProfile,
+  //   getProfile,
 };

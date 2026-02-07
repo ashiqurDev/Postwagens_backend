@@ -27,7 +27,7 @@ export const uploadBufferToCloudinary = async (
           {
             resource_type: 'auto',
             public_id: public_id,
-            folder: 'pdf',
+            folder: 'images',
           },
           (error, result) => {
             if (error) {
@@ -46,6 +46,9 @@ export const uploadBufferToCloudinary = async (
 
 export const deleteImageFromCLoudinary = async (url: string) => {
   try {
+    if (!url) {
+      return;
+    }
     const regex = /\/v\d+\/(.*?)\.(jpg|jpeg|png|gif|webp|avif)$/i;
     const match = url.match(regex);
 

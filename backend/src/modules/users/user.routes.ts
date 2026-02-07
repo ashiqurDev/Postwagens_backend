@@ -29,13 +29,13 @@ router.post(
 router.get('/', checkAuth(...Object.values(Role)), userControllers.getAllUser);
 
 // UPDATE USER
-// router.patch(
-//   '/:userId',
-//   checkAuth(...Object.keys(Role)),
-//   multerUpload.single('file'),
-//   validateRequest(userUpdateZodSchema),
-//   userControllers.userUpdate
-// );
+router.patch(
+  '/:userId',
+  checkAuth(...Object.keys(Role)),
+  multerUpload.single('file'),
+  validateRequest(userUpdateZodSchema),
+  userControllers.userUpdate
+);
 
 // DELETE USER
 router.delete(
