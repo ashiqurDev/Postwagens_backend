@@ -8,6 +8,7 @@ import passport from 'passport';
 
 const router = Router();
 
+router.post('/register', authController.register);
 router.post('/login', authController.credentialsLogin);
 router.post('/refresh', authController.getNeAccessToken);
 router.post(
@@ -30,5 +31,11 @@ router.get(
   passport.authenticate('google', { failureRedirect: '/login' }),
   authController.googleCallback
 );
+
+// APPLE LOGIN HANDLE
+router.get('/apple', authController.appleLogin);
+router.get('/apple/callback',
+  passport.authenticate('apple', { failureRedirect: '/login' }),
+ authController.appleCallback);
 
 export const authRouter = router;

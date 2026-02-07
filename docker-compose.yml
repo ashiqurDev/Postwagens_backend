@@ -15,18 +15,18 @@ services:
       - CHOKIDAR_USEPOLLING=true # Helps with file watching in Docker
     restart: always
 
-  postgres:
-    image: postgres:13
-    container_name: postwagens-postgres
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postwagens
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: always
+  # postgres:
+  #   image: postgres:13
+  #   container_name: postwagens-postgres
+  #   environment:
+  #     - POSTGRES_USER=admin
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=postwagens
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   restart: always
 
   redis:
     image: redis:6

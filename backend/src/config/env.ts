@@ -32,6 +32,16 @@ interface EnvInterfaces {
 
   FRONTEND_URL: string;
 
+  GOOGLE_OAUTH_ID: string;
+  GOOGLE_OAUTH_SECRET: string;
+  GOOGLE_CALLBACK_URL: string;
+
+  APPLE_OAUTH_ID: string;
+  APPLE_OAUTH_SECRET: string;
+  APPLE_CALLBACK_URL: string;
+  APPLE_TEAM_ID: string;
+  APPLE_KEY_ID: string;
+
 }
 
 const loadEnvVarbles = (): EnvInterfaces => {
@@ -65,6 +75,18 @@ const loadEnvVarbles = (): EnvInterfaces => {
     'OTP_JWT_ACCESS_EXPIRATION',
 
     'FRONTEND_URL',
+
+    'GOOGLE_OAUTH_ID',
+    'GOOGLE_OAUTH_SECRET',
+    'GOOGLE_CALLBACK_URL',
+
+    'APPLE_OAUTH_ID',
+    'APPLE_OAUTH_SECRET',
+    'APPLE_CALLBACK_URL',
+    'APPLE_TEAM_ID',
+    'APPLE_KEY_ID',
+
+
     
 
     
@@ -105,6 +127,14 @@ const loadEnvVarbles = (): EnvInterfaces => {
     OTP_JWT_ACCESS_SECRET: process.env.OTP_JWT_ACCESS_SECRET as string,
     OTP_JWT_ACCESS_EXPIRATION: process.env.OTP_JWT_ACCESS_EXPIRATION as string,
     FRONTEND_URL: process.env.FRONTEND_URL as string,
+    GOOGLE_OAUTH_ID: process.env.GOOGLE_OAUTH_ID as string,
+    GOOGLE_OAUTH_SECRET: process.env.GOOGLE_OAUTH_SECRET as string,
+    GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
+    APPLE_OAUTH_ID: process.env.APPLE_OAUTH_ID as string,
+    APPLE_OAUTH_SECRET: process.env.APPLE_OAUTH_SECRET as string,
+    APPLE_CALLBACK_URL: process.env.APPLE_CALLBACK_URL as string,
+    APPLE_TEAM_ID: process.env.APPLE_TEAM_ID as string,
+    APPLE_KEY_ID: process.env.APPLE_KEY_ID as string,
     
   };
 };

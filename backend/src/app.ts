@@ -4,6 +4,7 @@ import morgan from "morgan";
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import env from "./config/env";
+import './config/passport.config';
 import { router } from "./routes";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import { NotFound } from "./middlewares/NotFound";
@@ -31,17 +32,16 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+// GLOBAL ROUTES
+app.use('/api/v1', router);
+
 // Routes
-app.use("/", (_, res: Response) => {
+app.get("/", (_, res: Response) => {
   res.json({
     status: "success",
     message: "I am alive! 🎉",
   })
 });
-
-
-// GLOBAL ROUTES
-app.use('/api/v1', router);
 
 // GLOBAL ERROR HANDLER
 app.use(globalErrorHandler);

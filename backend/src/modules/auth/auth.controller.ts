@@ -11,6 +11,19 @@ import { authService } from './auth.service';
 import { JwtPayload } from 'jsonwebtoken';
 import env from '../../config/env';
 
+// register user
+const register = CatchAsync(async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+  const result = await authService.registerService(name, email, password);
+  
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User registered successfully!',
+    data: result,
+  });
+});
+
 // Login User
 const credentialsLogin = CatchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -91,7 +104,7 @@ const verifyOTP = CatchAsync(async (req: Request, res: Response) => {
 
 // RESET PASSWORD
 const resetPassword = CatchAsync(async (req: Request, res: Response) => {
-  const token = req.headers.authorization as string;
+  const token = req.headers.authorization?.split(' ')[1] as string; // Extract token from
   const { newPassword } = req.body;
   const result = await authService.resetPasswordService(token, newPassword);
 
@@ -127,7 +140,30 @@ const googleCallback = CatchAsync(
   }
 );
 
+const appleLogin = CatchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('apple', {
+      scope: ['name', 'email'],
+    })(req, res, next);
+  }
+);
+
+const appleCallback = CatchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as JwtPayload;
+    if (!user) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+
+    const { refreshToken, accessToken } = await createUserTokens(user);
+    res.redirect(
+      `${env.FRONTEND_URL}?refresh=${refreshToken}&access=${accessToken}`
+    );
+  }
+);
+
 export const authController = {
+  register,
   credentialsLogin,
   getNeAccessToken,
   changePassword,
@@ -136,4 +172,6 @@ export const authController = {
   resetPassword,
   googleCallback,
   googleLogin,
+  appleLogin,
+  appleCallback,
 };
