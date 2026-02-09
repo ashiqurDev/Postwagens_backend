@@ -8,6 +8,8 @@ import { postControllers } from './post.controller';
 import { checkAuth } from '../../middlewares/auth.middleware';
 import { Role } from '../users/user.interface';
 import { multerUpload } from '../../config/multer.config';
+import { LikeRoutes } from '../likes/like.routes';
+import { PostCommentRoutes } from '../comments/comment.routes';
 
 const router = express.Router();
 
@@ -26,6 +28,9 @@ router.get(
   checkAuth(...Object.values(Role)),
   postControllers.getMyPosts,
 );
+
+router.use('/:id', LikeRoutes);
+router.use('/:id', PostCommentRoutes);
 
 router.get('/:id', postControllers.getSinglePost);
 
