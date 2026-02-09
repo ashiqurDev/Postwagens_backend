@@ -1,20 +1,47 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errorHelpers/AppError';
 import { QueryBuilder } from '../../utils/QueryBuilder';
-import { IListing } from './listing.interface';
+import { IImageAndVideo, IListing } from './listing.interface';
 import Listing from './listing.model';
 import { JwtPayload } from 'jsonwebtoken';
+import {
+  deleteImageFromCLoudinary,
+  uploadBufferToCloudinary,
+} from '../../config/cloudinary.config';
+import User from '../users/user.model';
 
 // Create Listing
-const createListingService = async (payload: IListing, user: JwtPayload) => {
+const createListingService = async (
+  payload: IListing,
+  user: JwtPayload,
+  files: Express.Multer.File[]
+) => {
   payload.sellerId = user.userId;
+
+  if (files && files.length > 0) {
+    const imagesAndVideos: IImageAndVideo[] = [];
+    for (const file of files) {
+      const uploadedFile = await uploadBufferToCloudinary(
+        file.buffer,
+        file.originalname
+      );
+      if (uploadedFile) {
+        imagesAndVideos.push({
+          type: file.mimetype.startsWith('image') ? 'image' : 'video',
+          url: uploadedFile.secure_url,
+        });
+      }
+    }
+    payload.imagesAndVideos = imagesAndVideos;
+  }
+
   const listing = await Listing.create(payload);
   return listing;
 };
 
 // Get My Listings
 const getMyListingsService = async (user: JwtPayload) => {
-  const listings = await Listing.find({ sellerId: user.userId }).populate('sellerId');
+  const listings = await Listing.find({ sellerId: user.userId }).populate('sellerId', 'fullName email');
   return listings;
 };
 
@@ -49,7 +76,8 @@ const getSingleListingService = async (id: string) => {
 const updateListingService = async (
   id: string,
   payload: Partial<IListing>,
-  user: JwtPayload
+  user: JwtPayload,
+  files: Express.Multer.File[]
 ) => {
   const listing = await Listing.findById(id);
 
@@ -62,6 +90,31 @@ const updateListingService = async (
       StatusCodes.FORBIDDEN,
       'You are not authorized to update this listing'
     );
+  }
+
+  if (files && files.length > 0) {
+    // Delete old images from Cloudinary
+    if (listing.imagesAndVideos && listing.imagesAndVideos.length > 0) {
+      for (const image of listing.imagesAndVideos) {
+        await deleteImageFromCLoudinary(image.url);
+      }
+    }
+
+    // Upload new images
+    const newImagesAndVideos: IImageAndVideo[] = [];
+    for (const file of files) {
+      const uploadedFile = await uploadBufferToCloudinary(
+        file.buffer,
+        file.originalname
+      );
+      if (uploadedFile) {
+        newImagesAndVideos.push({
+          type: file.mimetype.startsWith('image') ? 'image' : 'video',
+          url: uploadedFile.secure_url,
+        });
+      }
+    }
+    payload.imagesAndVideos = newImagesAndVideos;
   }
 
   const updatedListing = await Listing.findByIdAndUpdate(id, payload, {
@@ -85,6 +138,13 @@ const deleteListingService = async (id: string, user: JwtPayload) => {
       StatusCodes.FORBIDDEN,
       'You are not authorized to delete this listing'
     );
+  }
+  
+  // Delete images from Cloudinary before deleting the listing
+  if (listing.imagesAndVideos && listing.imagesAndVideos.length > 0) {
+    for (const image of listing.imagesAndVideos) {
+      await deleteImageFromCLoudinary(image.url);
+    }
   }
 
   await Listing.findByIdAndDelete(id);

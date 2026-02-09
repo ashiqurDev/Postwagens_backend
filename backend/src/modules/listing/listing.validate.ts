@@ -9,8 +9,8 @@ const imageAndVideoSchema = z.object({
 export const createListingZodSchema = z.object({
   title: z.string(),
   description: z.string(),
-  price: z.number(),
-  imagesAndVideos: z.array(imageAndVideoSchema),
+  price: z.coerce.number(),
+  imagesAndVideos: z.array(imageAndVideoSchema).optional(),
   category: z.nativeEnum(ListingCategory),
   condition: z.string(),
   location: z.string(),
@@ -19,7 +19,7 @@ export const createListingZodSchema = z.object({
 export const updateListingZodSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  price: z.number().optional(),
+  price: z.coerce.number().optional(),
   imagesAndVideos: z.array(imageAndVideoSchema).optional(),
   category: z.nativeEnum(ListingCategory).optional(),
   condition: z.string().optional(),

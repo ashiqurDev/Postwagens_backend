@@ -9,7 +9,8 @@ import { JwtPayload } from 'jsonwebtoken';
 const createListing = CatchAsync(async (req: Request, res: Response) => {
   const result = await listingServices.createListingService(
     req.body,
-    req.user as JwtPayload
+    req.user as JwtPayload,
+    req.files as Express.Multer.File[]
   );
 
   SendResponse(res, {
@@ -76,7 +77,8 @@ const updateListing = CatchAsync(async (req: Request, res: Response) => {
   const result = await listingServices.updateListingService(
     id as string,
     req.body,
-    req.user as JwtPayload
+    req.user as JwtPayload,
+    req.files as Express.Multer.File[]
   );
 
   SendResponse(res, {

@@ -20,7 +20,7 @@ const listingSchema = new Schema<IListing>(
     condition: { type: String, required: true },
     location: { type: String, required: true },
     sold: { type: Boolean, default: false },
-    sellerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    sellerId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
     isBoosted: { type: Boolean, default: false },
     boostExpiresAt: { type: Date },
   },

@@ -7,12 +7,14 @@ import {
 import { listingControllers } from './listing.controller';
 import { checkAuth } from '../../middlewares/auth.middleware';
 import { Role } from '../users/user.interface';
+import { multerUpload } from '../../config/multer.config';
 
 const router = express.Router();
 
 router.post(
   '/',
   checkAuth(...Object.values(Role)),
+  multerUpload.array('imagesAndVideos'),
   validateRequest(createListingZodSchema),
   listingControllers.createListing
 );
@@ -26,6 +28,7 @@ router.get('/:id', listingControllers.getSingleListing);
 router.patch(
   '/:id',
   checkAuth(...Object.values(Role)),
+  multerUpload.array('imagesAndVideos'),
   validateRequest(updateListingZodSchema),
   listingControllers.updateListing
 );

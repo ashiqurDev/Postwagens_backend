@@ -3,6 +3,7 @@ import { Query, Types } from 'mongoose';
 // import { excludeField } from '../modules/events/event.constant';
 import { ICoord } from '../modules/users/user.interface';
 
+const excludeField = ['page', 'limit', 'sort', 'fields', 'searchTerm', 'join'];
 export class QueryBuilder<T> {
   public queryModel: Query<T[], T>;
   public query: Record<string, string>;
@@ -15,9 +16,9 @@ export class QueryBuilder<T> {
   // CASE SENSITIVE FILTERING
   filter(): this {
     const filter = { ...this.query };
-    // for (const value of excludeField) {
-    //   delete filter[value];
-    // }
+    for (const value of excludeField) {
+      delete filter[value];
+    }
 
     this.queryModel = this.queryModel.find(filter);
     return this;
