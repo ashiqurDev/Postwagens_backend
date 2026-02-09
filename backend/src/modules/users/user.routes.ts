@@ -16,7 +16,7 @@ router.post(
 );
 
 // GET ME
-// router.get('/get_me', checkAuth(...Object.keys(Role)), userControllers.getMe);
+router.get('/get_me', checkAuth(...Object.keys(Role)), userControllers.getMe);
 
 // GET USER PROFILE
 // router.get(

@@ -18,17 +18,17 @@ const registerUser = CatchAsync(async (req: Request, res: Response) => {
 });
 
 // GET ME
-// const getMe = CatchAsync(async (req: Request, res: Response) => {
-//   const { userId } = req.user as JwtPayload;
-//   const result = await userServices.getMeService(userId);
+const getMe = CatchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user as JwtPayload;
+  const result = await userServices.getMeService(userId);
 
-//   SendResponse(res, {
-//     success: true,
-//     statusCode: 200,
-//     message: 'User fetched successful!',
-//     data: result,
-//   });
-// });
+  SendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: 'User fetched successful!',
+    data: result,
+  });
+});
 
 // GET ME
 const getAllUser = CatchAsync(async (req: Request, res: Response) => {
@@ -77,7 +77,7 @@ const userUpdate = CatchAsync(async (req: Request, res: Response) => {
   }
 
   const result = await userServices.userUpdateService(
-    userId,
+    userId as string,
     payload,
     decodedToken
   );
@@ -95,7 +95,7 @@ const userDelete = CatchAsync(async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const decodedToken = req.user as JwtPayload;
 
-  const result = await userServices.userDeleteService(userId, decodedToken);
+  const result = await userServices.userDeleteService(userId as string, decodedToken);
 
   SendResponse(res, {
     success: true,
@@ -136,7 +136,7 @@ export const userControllers = {
   registerUser,
   userVefification,
   verifyOTP,
-  //   getMe,
+    getMe,
   userUpdate,
   userDelete,
   getAllUser,

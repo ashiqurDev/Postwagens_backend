@@ -99,6 +99,7 @@ passport.use(
 
 // APPLE REGISTRATION
 passport.use(
+    // @ts-ignore
     new AppleStrategy(
         {
             clientID: env.APPLE_OAUTH_ID,

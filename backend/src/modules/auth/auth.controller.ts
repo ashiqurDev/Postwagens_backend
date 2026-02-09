@@ -67,7 +67,7 @@ const changePassword = CatchAsync(async (req: Request, res: Response) => {
 // FORGET PASSWORD
 const forgetPassword = CatchAsync(async (req: Request, res: Response) => {
   const { email } = req.params;
-  const result = await authService.forgetPasswrodService(email);
+  const result = await authService.forgetPasswrodService(email as string);
 
   SendResponse(res, {
     success: true,
@@ -80,7 +80,7 @@ const forgetPassword = CatchAsync(async (req: Request, res: Response) => {
 // RESET PASSWORD
 const verifyOTP = CatchAsync(async (req: Request, res: Response) => {
   const { email, otp } = req.params;
-  const result = await authService.verifyOTPService(email, otp);
+  const result = await authService.verifyOTPService(email as string, otp as string);
 
   SendResponse(res, {
     success: true,

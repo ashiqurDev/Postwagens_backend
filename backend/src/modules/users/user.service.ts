@@ -89,67 +89,54 @@ const filter = {};
 };
 
 // GET ME
-// const getMeService = async (userId: string) => {
-//   const user = await User.aggregate([
-//     // Stage 1: Matching
-//     { $match: { _id: new Types.ObjectId(userId) } },
+const getMeService = async (userId: string) => {
+  const user = await User.aggregate([
+    // Stage 1: Matching
+    { $match: { _id: new Types.ObjectId(userId) } },
 
-//     // Stage 2: Join with interests
-//     {
-//       $lookup: {
-//         from: 'categories',
-//         localField: 'interests',
-//         foreignField: '_id',
-//         as: 'interest',
-//       },
-//     },
+    // Stage 2: Join with interests
+    // {
+    //   $lookup: {
+    //     from: 'categories',
+    //     localField: 'interests',
+    //     foreignField: '_id',
+    //     as: 'interest',
+    //   },
+    // },
 
-//     // Projection
-//     {
-//       $project: {
-//         password: 0,
-//         interests: 0,
-//       },
-//     },
-//   ]);
+    // Projection
+    {
+      $project: {
+        password: 0,
+        interests: 0,
+      },
+    },
+  ]);
 
-//   if (!user || user.length === 0) {
-//     throw new AppError(404, 'User not found');
-//   }
+  if (!user || user.length === 0) {
+    throw new AppError(404, 'User not found');
+  }
 
-//   // Normalize the date to remove time part
-//   const normalizeDate = (date: Date) => {
-//     const normalizedDate = new Date(date);
-//     normalizedDate.setHours(0, 0, 0, 0); // Set time to midnight
-//     return normalizedDate;
-//   };
+  // Normalize the date to remove time part
+  const normalizeDate = (date: Date) => {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0); // Set time to midnight
+    return normalizedDate;
+  };
 
-//   const todayNormalized = normalizeDate(new Date());
+  const todayNormalized = normalizeDate(new Date());
 
-//   // Update user activity for the day
-// //   await UserActivity.updateOne(
-// //     { user: new Types.ObjectId(userId), date: todayNormalized }, // match user + normalized date
-// //     { $setOnInsert: { createdAt: new Date() } }, // insert only if missing
-// //     { upsert: true } // create if missing
-// //   );
+  // Update user activity for the day
+//   await UserActivity.updateOne(
+//     { user: new Types.ObjectId(userId), date: todayNormalized }, // match user + normalized date
+//     { $setOnInsert: { createdAt: new Date() } }, // insert only if missing
+//     { upsert: true } // create if missing
+//   );
 
-//   // REPUTATION AS HOST OR ORGANIZER
-//   const myEvents = await Event.find({ host: userId }); // MY EVENTS
-//   const myEventIds = myEvents.map((e) => e._id.toString()); // EXTRACT EVENT ID
-//   const getMyEventVoting = await EventVote.find({ event: { $in: myEventIds } }); // GET VOTE FOR MY EVENTS
 
-//   const totalUpvote = getMyEventVoting.filter(
-//     (v) => v.voteType === VotingType.UPVOTE
-//   ); // FILTER ONLY UPVOTE
-//   const totalDownvote = getMyEventVoting.filter(
-//     (v) => v.voteType === VotingType.DOWNVOTE
-//   ); // FILTER ONLY DOWNVOTE
 
-//   const host_or_organizer_reputation =
-//     totalUpvote.length - totalDownvote.length;
-
-//   return { ...user[0], reputation: host_or_organizer_reputation };
-// };
+  return user[0];
+};
 
 // GET PROFILE
 // const getProfileService = async (userId: string) => {
@@ -423,7 +410,7 @@ export const userServices = {
   createUserService,
   verifyOTPService,
   verifyUserService,
-//   getMeService,
+  getMeService,
   userUpdateService,
   userDeleteService,
   getAllUserService,
