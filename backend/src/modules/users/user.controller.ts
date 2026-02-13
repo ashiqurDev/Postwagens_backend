@@ -131,6 +131,19 @@ const verifyOTP = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const purchaseBadge = CatchAsync(async (req: Request, res: Response) => {
+    const { userId } = req.user as JwtPayload;
+    const { badgeId } = req.body;
+    const result = await userServices.purchaseBadgeService(userId, badgeId);
+  
+    SendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: 'Badge purchased successfully!',
+      data: result,
+    });
+  });
+
 // EXPORT ALL CONTROLLERS
 export const userControllers = {
   registerUser,
@@ -140,5 +153,6 @@ export const userControllers = {
   userUpdate,
   userDelete,
   getAllUser,
+  purchaseBadge,
   //   getProfile,
 };

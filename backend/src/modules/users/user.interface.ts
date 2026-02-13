@@ -30,13 +30,14 @@ export interface IUser {
   avatar?: string;
   password?: string;
   fcmToken?: string;
-  verifiedBadge?: boolean;
+  verifiedBadge?: Types.ObjectId;
+  verifiedBadgeExpiration?: Date;
+  isVerified?: boolean;
   role: Role;
   stripeAccountId?: string;
   interests?: Types.ObjectId[];
   isActive?: IsActive;
   isDeleted?: boolean;
-  isVerified?: boolean;
   auths?: IAuthProvider[];
   location?: string;
 }

@@ -7,6 +7,7 @@ import { CommentRoutes } from '../modules/comments/comment.routes';
 import { BookmarkRoutes } from '../modules/bookmarks/bookmark.routes';
 import { BoostRoutes } from '../modules/boosts/boost.routes';
 import { ConversationRoutes } from '../modules/conversations/conversation.routes';
+import { VerifiedBadgePriceRoutes } from '../modules/verified_badge_prices/verified_badge_prices.routes';
 
 export const router = Router();
 
@@ -43,6 +44,10 @@ const moduleRoutes = [
   {
     path: '/conversations',
     route: ConversationRoutes,
+  },
+  {
+    path: '/verified-badge-prices',
+    route: VerifiedBadgePriceRoutes,
   },
 ];
 

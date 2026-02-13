@@ -19,6 +19,13 @@ router.post(
 // GET ME
 router.get('/get_me', checkAuth(...Object.keys(Role)), userControllers.getMe);
 
+// Purchase Badge
+router.post(
+  '/purchase-badge',
+  checkAuth(...Object.values(Role)),
+  userControllers.purchaseBadge,
+);
+
 // GET USER PROFILE
 // router.get(
 //   '/profile/:userId',

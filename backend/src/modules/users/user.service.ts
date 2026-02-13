@@ -12,6 +12,7 @@ import env from '../../config/env';
 // import axios from 'axios';
 import { redisClient } from '../../config/redis.config';
 import { deleteImageFromCLoudinary } from '../../config/cloudinary.config';
+import { VerifiedBadgePrice } from '../verified_badge_prices/verified_badge_prices.model';
 
 // CREATE USER
 const createUserService = async (payload: Partial<IUser>) => {
@@ -405,6 +406,32 @@ const verifyOTPService = async (phoneNumber: string, otp: string) => {
   return null;
 };
 
+const purchaseBadgeService = async (userId: string, badgeId: string) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  const badge = await VerifiedBadgePrice.findById(badgeId);
+  if (!badge) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Badge not found!');
+  }
+
+  // Here you would implement the payment logic.
+  // For now, we simulate a successful payment.
+
+  const expirationDate = new Date();
+  expirationDate.setDate(expirationDate.getDate() + badge.durationDays);
+
+  user.verifiedBadge = badge._id;
+  user.verifiedBadgeExpiration = expirationDate;
+  user.isVerified = true;
+
+  await user.save();
+
+  return user;
+};
+
 // EXPORT ALL SERVICE
 export const userServices = {
   createUserService,
@@ -414,5 +441,6 @@ export const userServices = {
   userUpdateService,
   userDeleteService,
   getAllUserService,
+  purchaseBadgeService,
 //   getProfileService,
 };
