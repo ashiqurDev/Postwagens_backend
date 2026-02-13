@@ -6,6 +6,7 @@ import { postRoutes } from '../modules/post/post.routes';
 import { CommentRoutes } from '../modules/comments/comment.routes';
 import { BookmarkRoutes } from '../modules/bookmarks/bookmark.routes';
 import { BoostRoutes } from '../modules/boosts/boost.routes';
+import { ConversationRoutes } from '../modules/conversations/conversation.routes';
 
 export const router = Router();
 
@@ -38,6 +39,10 @@ const moduleRoutes = [
   {
     path: '/boosts',
     route: BoostRoutes,
+  },
+  {
+    path: '/conversations',
+    route: ConversationRoutes,
   },
 ];
 

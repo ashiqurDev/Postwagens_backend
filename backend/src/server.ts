@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
-import { Server } from 'http';
+import { Server as HttpServer } from 'http';
 import app from "./app";
 import envVars from "../src/config/env";
 import { connectRedis } from "./config/redis.config";
 import connectDB from "../src/config/db";
+import { initSocket } from "./socket/socket";
 
-let server: Server;
+let server: HttpServer;
 dotenv.config();
 
 const PORT = envVars.PORT || 3002;
@@ -16,6 +17,7 @@ const startServer = async () => {
     server = app.listen(PORT, () => {
       console.log(`Server started on http://localhost:${PORT}`);
     });
+    initSocket(server);
   } catch (error) {
     console.log(error);
   }
