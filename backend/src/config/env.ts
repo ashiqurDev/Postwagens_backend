@@ -46,6 +46,18 @@ interface EnvInterfaces {
   CLOUDINARY_API_KEY?: string;
   CLOUDINARY_SECRET?: string;
 
+  TYPE: string;
+  PROJECT_ID: string;
+  PRIVATE_KEY_ID: string;
+  PRIVATE_KEY: string;
+  CLIENT_EMAIL: string;
+  CLIENT_ID: string;
+  AUTH_URI: string;
+  TOKEN_URI: string;
+  AUTH_PROVIDER_X509_CERT_URL: string;
+  CLIENT_X509_CERT_URL: string;
+  UNIVERSE_DOMAIN: string;
+
 }
 
 const loadEnvVarbles = (): EnvInterfaces => {
@@ -93,6 +105,18 @@ const loadEnvVarbles = (): EnvInterfaces => {
     'CLOUDINARY_NAME',
     'CLOUDINARY_API_KEY',
     'CLOUDINARY_SECRET',
+
+    'TYPE',
+    'PROJECT_ID',
+    'PRIVATE_KEY_ID',
+    'PRIVATE_KEY',
+    'CLIENT_EMAIL',
+    'CLIENT_ID',
+    'AUTH_URI',
+    'TOKEN_URI',
+    'AUTH_PROVIDER_X509_CERT_URL',
+    'CLIENT_X509_CERT_URL',
+    'UNIVERSE_DOMAIN',
 
 
 
@@ -148,6 +172,19 @@ const loadEnvVarbles = (): EnvInterfaces => {
     CLOUDINARY_NAME: process.env.CLOUDINARY_NAME as string,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
     CLOUDINARY_SECRET: process.env.CLOUDINARY_SECRET as string,
+
+    TYPE: process.env.TYPE as string,
+    PROJECT_ID: process.env.PROJECT_ID as string,
+    PRIVATE_KEY_ID: process.env.PRIVATE_KEY_ID as string,
+    PRIVATE_KEY: process.env.PRIVATE_KEY as string,
+    CLIENT_EMAIL: process.env.CLIENT_EMAIL as string,
+    CLIENT_ID: process.env.CLIENT_ID as string,
+    AUTH_URI: process.env.AUTH_URI as string,
+    TOKEN_URI: process.env.TOKEN_URI as string,
+    AUTH_PROVIDER_X509_CERT_URL: process.env
+      .AUTH_PROVIDER_X509_CERT_URL as string,
+    CLIENT_X509_CERT_URL: process.env.CLIENT_X509_CERT_URL as string,
+    UNIVERSE_DOMAIN: process.env.UNIVERSE_DOMAIN as string,
     
   };
 };

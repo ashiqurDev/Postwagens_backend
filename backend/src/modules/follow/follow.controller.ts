@@ -13,7 +13,7 @@ const toggleFollow: RequestHandler = CatchAsync(async (req, res) => {
     throw new AppError(StatusCodes.BAD_REQUEST, 'You cannot follow/unfollow yourself');
   }
 
-  const result = await FollowService.toggleFollow(followerId, userId);
+  const result = await FollowService.toggleFollow(followerId, userId as string);
 
   SendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -25,7 +25,7 @@ const toggleFollow: RequestHandler = CatchAsync(async (req, res) => {
 
 const getFollowers: RequestHandler = CatchAsync(async (req, res) => {
   const { userId } = req.params;
-  const result = await FollowService.getFollowers(userId);
+  const result = await FollowService.getFollowers(userId as string);
 
   SendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -37,7 +37,7 @@ const getFollowers: RequestHandler = CatchAsync(async (req, res) => {
 
 const getFollowing: RequestHandler = CatchAsync(async (req, res) => {
   const { userId } = req.params;
-  const result = await FollowService.getFollowing(userId);
+  const result = await FollowService.getFollowing(userId as string);
 
   SendResponse(res, {
     statusCode: StatusCodes.OK,

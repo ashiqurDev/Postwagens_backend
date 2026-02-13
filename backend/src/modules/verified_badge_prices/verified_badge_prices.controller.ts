@@ -26,7 +26,7 @@ const getAllBadgePrices: RequestHandler = CatchAsync(async (req, res) => {
 
 const getBadgePriceById: RequestHandler = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await VerifiedBadgePriceService.getBadgePriceById(id);
+  const result = await VerifiedBadgePriceService.getBadgePriceById(id as string);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -37,7 +37,7 @@ const getBadgePriceById: RequestHandler = CatchAsync(async (req, res) => {
 
 const updateBadgePrice: RequestHandler = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await VerifiedBadgePriceService.updateBadgePrice(id, req.body);
+  const result = await VerifiedBadgePriceService.updateBadgePrice(id as string, req.body);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -48,7 +48,7 @@ const updateBadgePrice: RequestHandler = CatchAsync(async (req, res) => {
 
 const deleteBadgePrice: RequestHandler = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  await VerifiedBadgePriceService.deleteBadgePrice(id);
+  await VerifiedBadgePriceService.deleteBadgePrice(id as string);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
