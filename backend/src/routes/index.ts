@@ -4,6 +4,8 @@ import { userRoutes } from '../modules/users/user.routes';
 import { listingRoutes } from '../modules/listing/listing.routes';
 import { postRoutes } from '../modules/post/post.routes';
 import { CommentRoutes } from '../modules/comments/comment.routes';
+import { BookmarkRoutes } from '../modules/bookmarks/bookmark.routes';
+import { BoostRoutes } from '../modules/boosts/boost.routes';
 
 export const router = Router();
 
@@ -28,6 +30,14 @@ const moduleRoutes = [
   {
     path: '/comments',
     route: CommentRoutes,
+  },
+  {
+    path: '/bookmarks',
+    route: BookmarkRoutes,
+  },
+  {
+    path: '/boosts',
+    route: BoostRoutes,
   },
 ];
 

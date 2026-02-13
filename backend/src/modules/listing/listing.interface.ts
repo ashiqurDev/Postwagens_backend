@@ -21,6 +21,5 @@ export interface IListing {
   location: string;
   sold: boolean;
   sellerId: Types.ObjectId;
-  isBoosted: boolean;
-  boostExpiresAt?: Date;
+  isBoosted?: boolean;
 }
