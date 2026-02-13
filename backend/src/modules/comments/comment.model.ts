@@ -5,12 +5,12 @@ const commentSchema = new Schema<TComment, CommentModel>(
   {
     postId: {
       type: Schema.Types.ObjectId,
-      ref: 'Post',
+      ref: 'post',
       required: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: true,
     },
     parentId: {
