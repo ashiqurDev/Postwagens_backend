@@ -5,6 +5,7 @@ import { userUpdateZodSchema, userZodSchema } from './user.validate';
 import { checkAuth } from '../../middlewares/auth.middleware';
 import { Role } from './user.interface';
 import { multerUpload } from '../../config/multer.config';
+import { FollowController } from '../follow/follow.controller';
 
 const router = express.Router();
 
@@ -27,6 +28,23 @@ router.get('/get_me', checkAuth(...Object.keys(Role)), userControllers.getMe);
 
 // GET ALL USER LIST
 router.get('/', checkAuth(...Object.values(Role)), userControllers.getAllUser);
+
+// Follow routes
+router.post(
+  '/:userId/toggle-follow',
+  checkAuth(...Object.values(Role)),
+  FollowController.toggleFollow,
+);
+router.get(
+  '/:userId/followers',
+  checkAuth(...Object.values(Role)),
+  FollowController.getFollowers,
+);
+router.get(
+  '/:userId/following',
+  checkAuth(...Object.values(Role)),
+  FollowController.getFollowing,
+);
 
 // UPDATE USER
 router.patch(
