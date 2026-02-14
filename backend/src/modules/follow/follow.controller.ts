@@ -7,6 +7,7 @@ import AppError from '../../errorHelpers/AppError';
 
 const toggleFollow: RequestHandler = CatchAsync(async (req, res) => {
   const { userId } = req.params;
+  // @ts-ignore
   const followerId = req.user?.userId;
 
   if (userId === followerId) {

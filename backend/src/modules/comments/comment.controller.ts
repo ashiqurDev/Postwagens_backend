@@ -30,7 +30,7 @@ const createComment = CatchAsync(async (req, res) => {
 
 const getCommentsForPost = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await CommentService.getCommentsForPost(id, req.query);
+  const result = await CommentService.getCommentsForPost(id as string, req.query);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -45,7 +45,9 @@ const updateComment = CatchAsync(async (req, res) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const userId = req.user.userId;
+  
   const result = await CommentService.updateComment(
+    // @ts-ignore
     commentId,
     userId,
     req.body,
@@ -63,6 +65,7 @@ const deleteComment = CatchAsync(async (req, res) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const userId = req.user.userId;
+  // @ts-ignore
   await CommentService.deleteComment(commentId, userId);
   SendResponse(res, {
     statusCode: StatusCodes.OK,

@@ -8,7 +8,7 @@ const likePost = CatchAsync(async (req, res) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const userId = req.user.userId; // Assuming user is available in the request
-  const result = await LikeService.likePost(id, userId);
+  const result = await LikeService.likePost(id as string, userId);
   SendResponse(res, {
     statusCode: StatusCodes.CREATED,
     success: true,
@@ -22,7 +22,7 @@ const unlikePost = CatchAsync(async (req, res) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const userId = req.user.userId; // Assuming user is available in the request
-  await LikeService.unlikePost(id, userId);
+  await LikeService.unlikePost(id as string, userId);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -33,7 +33,7 @@ const unlikePost = CatchAsync(async (req, res) => {
 
 const getLikesForPost = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await LikeService.getLikesForPost(id);
+  const result = await LikeService.getLikesForPost(id as string);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

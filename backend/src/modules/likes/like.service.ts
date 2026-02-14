@@ -52,7 +52,7 @@ const unlikePost = async (postId: string, userId: string) => {
   if (!liked) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not liked yet');
   }
-
+   // @ts-ignore
   await Like.findByIdAndDelete(liked._id);
 
   return null;

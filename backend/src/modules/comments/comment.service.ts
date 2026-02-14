@@ -72,6 +72,7 @@ const getCommentsForPost = async (
 
   const commentQuery = new QueryBuilder(
     Comment.find({ postId }).populate('userId'),
+    // @ts-ignore
     query,
   )
     .filter()

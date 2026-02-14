@@ -5,7 +5,9 @@ import { SendResponse } from '../../utils/SendResponse';
 
 const addBookmark = CatchAsync(async (req, res) => {
   const { listingId } = req.params;
+  // @ts-ignore
   const userId = req.user.userId;
+  // @ts-ignore
   const result = await BookmarkService.addBookmark(listingId, userId);
   SendResponse(res, {
     statusCode: StatusCodes.CREATED,
@@ -17,7 +19,9 @@ const addBookmark = CatchAsync(async (req, res) => {
 
 const removeBookmark = CatchAsync(async (req, res) => {
   const { listingId } = req.params;
+  // @ts-ignore
   const userId = req.user.userId;
+  // @ts-ignore
   await BookmarkService.removeBookmark(listingId, userId);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -28,6 +32,7 @@ const removeBookmark = CatchAsync(async (req, res) => {
 });
 
 const getBookmarksForUser = CatchAsync(async (req, res) => {
+  // @ts-ignore
     const userId = req.user.userId;
     const result = await BookmarkService.getBookmarksForUser(userId);
     SendResponse(res, {

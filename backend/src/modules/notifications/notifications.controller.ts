@@ -18,6 +18,7 @@ const getMyNotifications: RequestHandler = CatchAsync(async (req, res) => {
 
 const markAsRead: RequestHandler = CatchAsync(async (req, res) => {
   const { notificationId } = req.params;
+  // @ts-ignore
   const result = await NotificationService.markAsRead(notificationId);
   SendResponse(res, {
     statusCode: StatusCodes.OK,

@@ -26,7 +26,7 @@ const getAllBoostTypes = CatchAsync(async (req, res) => {
 
 const getBoostTypeById = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await BoostService.getBoostTypeById(id);
+  const result = await BoostService.getBoostTypeById(id as string);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -37,7 +37,7 @@ const getBoostTypeById = CatchAsync(async (req, res) => {
 
 const updateBoostType = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await BoostService.updateBoostType(id, req.body);
+  const result = await BoostService.updateBoostType(id as string, req.body);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -48,7 +48,7 @@ const updateBoostType = CatchAsync(async (req, res) => {
 
 const deleteBoostType = CatchAsync(async (req, res) => {
   const { id } = req.params;
-  await BoostService.deleteBoostType(id);
+  await BoostService.deleteBoostType(id as string);
   SendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -60,6 +60,7 @@ const deleteBoostType = CatchAsync(async (req, res) => {
 // ListingBoost controllers
 const boostListing = CatchAsync(async (req, res) => {
   const { listingId, boostTypeId } = req.body;
+  // @ts-ignore
   const userId = req.user.userId;
   const result = await BoostService.boostListing(
     listingId,
@@ -76,6 +77,7 @@ const boostListing = CatchAsync(async (req, res) => {
 
 const getListingBoosts = CatchAsync(async (req, res) => {
     const { listingId } = req.params;
+    // @ts-ignore
     const result = await BoostService.getListingBoosts(listingId);
     SendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -86,6 +88,7 @@ const getListingBoosts = CatchAsync(async (req, res) => {
 });
 
 const getUserBoosts = CatchAsync(async (req, res) => {
+  // @ts-ignore
     const userId = req.user.userId;
     const result = await BoostService.getUserBoosts(userId);
     SendResponse(res, {

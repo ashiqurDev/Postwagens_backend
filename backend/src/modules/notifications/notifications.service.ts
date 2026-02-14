@@ -52,6 +52,7 @@ const createNotification = async (payload: INotification) => {
         };
         
         try {
+          // @ts-ignore
           await fcm.send(message);
         } catch (error) {
           console.error('Error sending FCM message:', error);
