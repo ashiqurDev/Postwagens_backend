@@ -9,6 +9,7 @@ import {
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
 import '../users/user.model'; // Import user model to resolve ref in post model
+import { BoostService } from '../boosts/boost.service';
 
 
 // Create Post
@@ -48,7 +49,7 @@ const getMyPostsService = async (user: JwtPayload) => {
 
 // Get All Posts
 const getAllPostsService = async (query: Record<string, string>) => {
-  const postQuery = new QueryBuilder(Post.find(), query)
+  const postQuery = new QueryBuilder(Post.find().populate('userId', 'fullName avatar isVerified'), query)
     .textSearch()
     .filter()
     .sort()
@@ -58,9 +59,23 @@ const getAllPostsService = async (query: Record<string, string>) => {
   const result = await postQuery.build();
   const meta = await postQuery.getMeta();
 
+  // Fetch active boosts
+  const activeBoosts = await BoostService.getActiveBoosts();
+  const combinedFeed: any[] = [];
+  const injectionInterval = 1; // Inject a boost every 1 posts
+
+  let boostIndex = 0;
+  result.forEach((post, index) => {
+    combinedFeed.push({ type: 'post', data: post });
+    if ((index + 1) % injectionInterval === 0 && boostIndex < activeBoosts.length) {
+      combinedFeed.push({ type: 'boost', data: activeBoosts[boostIndex] });
+      boostIndex++;
+    }
+  });
+
   return {
     meta,
-    result,
+    result: combinedFeed,
   };
 };
 

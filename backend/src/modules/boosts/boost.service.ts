@@ -85,7 +85,7 @@ const getUserBoosts = async (userId: string) => {
 };
 
 const getActiveBoosts = async () => {
-    const boosts = await Boost.find({ endAt: { $gte: new Date() } }).populate('listingId boostTypeId');
+    const boosts = await Boost.find({ endAt: { $gte: new Date() } }).populate('listingId boostTypeId userId', 'fullName avatar isVerified title description price imagesAndVideos category location condition');
     return boosts;
 };
 
