@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { Server as HttpServer } from 'http';
 import app from "./app";
 import envVars from "../src/config/env";
-import { connectRedis } from "./config/redis.config";
+// import { connectRedis } from "./config/redis.config";
 import connectDB from "../src/config/db";
 import { initSocket } from "./socket/socket";
 
@@ -25,7 +25,7 @@ const startServer = async () => {
 
 // Booom and start the server
 (async () => {
-  await connectRedis();
+  // await connectRedis();
   await startServer();
 })();
 
