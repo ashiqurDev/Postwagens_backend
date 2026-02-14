@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import { IListing, ListingCategory } from './listing.interface';
-import { Boost } from '../boosts/boost.model';
 
 const listingSchema = new Schema<IListing>(
   {

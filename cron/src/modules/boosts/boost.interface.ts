@@ -6,4 +6,5 @@ export interface IBoost {
   startAt: Date;
   endAt: Date;
   boostTypeId: Types.ObjectId;
+  processed?: boolean;
 }
