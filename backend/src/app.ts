@@ -43,10 +43,10 @@ app.get("/", (_, res: Response) => {
   })
 });
 
-// GLOBAL ERROR HANDLER
-app.use(globalErrorHandler);
-
 // NO ROUTE MATCH
 app.use(NotFound);
+
+// GLOBAL ERROR HANDLER
+app.use(globalErrorHandler);
 
 export default app;
