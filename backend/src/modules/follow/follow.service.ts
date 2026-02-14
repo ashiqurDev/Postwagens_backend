@@ -1,13 +1,28 @@
 import { Follow } from './follow.model';
+import { NotificationService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.interface';
+import { Types } from 'mongoose';
 
-const toggleFollow = async (follower: string, following: string) => {
-    const isFollowing = await Follow.findOne({ follower, following });
+const toggleFollow = async (followerId: string, followingId: string) => {
+    const isFollowing = await Follow.findOne({ follower: followerId, following: followingId });
 
     if (isFollowing) {
-        await Follow.findOneAndDelete({ follower, following });
+        await Follow.findOneAndDelete({ follower: followerId, following: followingId });
         return { following: false };
     } else {
-        await Follow.create({ follower, following });
+        const follow = await Follow.create({ follower: followerId, following: followingId });
+
+        // Create notification
+        await NotificationService.createNotification({
+            userId: new Types.ObjectId(followingId),
+            actorId: new Types.ObjectId(followerId),
+            type: NotificationType.FOLLOW,
+            entity: {
+                followId: follow._id,
+            },
+            isRead: false,
+        });
+
         return { following: true };
     }
 };

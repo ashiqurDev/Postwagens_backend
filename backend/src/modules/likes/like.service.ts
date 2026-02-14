@@ -2,6 +2,9 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errorHelpers/AppError';
 import { Like } from './like.model';
 import  Post  from '../post/post.model';
+import { NotificationService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.interface';
+import { Types } from 'mongoose';
 
 const likePost = async (postId: string, userId: string) => {
   const post = await Post.findById(postId);
@@ -18,8 +21,23 @@ const likePost = async (postId: string, userId: string) => {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const result = await Like.create({ postId, userId });
-  return result;
+  const like = await Like.create({ postId, userId });
+
+  // Create notification
+  if (post.userId.toString() !== userId) { // Do not notify if you like your own post
+    await NotificationService.createNotification({
+        userId: post.userId, // author of the post
+        actorId: new Types.ObjectId(userId),
+        type: NotificationType.LIKE,
+        entity: {
+            postId: post._id,
+            likeId: like._id,
+        },
+        isRead: false,
+    });
+  }
+
+  return like;
 };
 
 const unlikePost = async (postId: string, userId: string) => {

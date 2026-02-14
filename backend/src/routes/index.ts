@@ -8,6 +8,8 @@ import { BookmarkRoutes } from '../modules/bookmarks/bookmark.routes';
 import { BoostRoutes } from '../modules/boosts/boost.routes';
 import { ConversationRoutes } from '../modules/conversations/conversation.routes';
 import { VerifiedBadgePriceRoutes } from '../modules/verified_badge_prices/verified_badge_prices.routes';
+import { NotificationRoutes } from '../modules/notifications/notifications.routes';
+import { NotificationPreferenceRoutes } from '../modules/notification_preferences/notification_preferences.routes';
 
 export const router = Router();
 
@@ -48,6 +50,14 @@ const moduleRoutes = [
   {
     path: '/verified-badge-prices',
     route: VerifiedBadgePriceRoutes,
+  },
+  {
+    path: '/notifications',
+    route: NotificationRoutes,
+  },
+  {
+    path: '/notification-preferences',
+    route: NotificationPreferenceRoutes,
   },
 ];
 

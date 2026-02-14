@@ -4,6 +4,9 @@ import  Post  from '../post/post.model';
 import { Comment } from './comment.model';
 import { TComment } from './comment.interface';
 import {QueryBuilder} from '../../utils/QueryBuilder';
+import { NotificationService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.interface';
+import { Types } from 'mongoose';
 
 const createComment = async (payload: TComment) => {
   const post = await Post.findById(payload.postId);
@@ -21,8 +24,40 @@ const createComment = async (payload: TComment) => {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const result = await Comment.create(payload);
-  return result;
+  const comment = await Comment.create(payload);
+
+  // Create notification for the post author
+  if (post.userId.toString() !== payload.userId.toString()) {
+    await NotificationService.createNotification({
+        userId: post.userId,
+        actorId: new Types.ObjectId(payload.userId),
+        type: NotificationType.COMMENT,
+        entity: {
+            postId: post._id,
+            commentId: comment._id,
+        },
+        isRead: false,
+    });
+  }
+
+  // Create notification for the parent comment author
+  if (payload.parentId) {
+    const parentComment = await Comment.findById(payload.parentId);
+    if (parentComment && parentComment.userId.toString() !== payload.userId.toString()) {
+        await NotificationService.createNotification({
+            userId: parentComment.userId,
+            actorId: new Types.ObjectId(payload.userId),
+            type: NotificationType.COMMENT, // Or a new type like 'reply'
+            entity: {
+                postId: post._id,
+                commentId: comment._id,
+            },
+            isRead: false,
+        });
+    }
+  }
+
+  return comment;
 };
 
 const getCommentsForPost = async (
