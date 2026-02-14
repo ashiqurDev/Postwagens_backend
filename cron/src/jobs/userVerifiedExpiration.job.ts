@@ -5,7 +5,7 @@ import User from '../modules/users/user.model';
 export const scheduleUserVerifiedExpirationJob = () => {
     console.log('🕒 Scheduling user verified expiration job...');
     
-    cron.schedule('*/1 * * * *', async () => {
+    cron.schedule('0 0 * * *', async () => {
         console.log('🚀 Running user verified expiration job at:', new Date().toISOString());
         
         try {

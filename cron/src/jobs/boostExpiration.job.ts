@@ -6,7 +6,7 @@ import Listing from '../modules/listing/listing.model';
 export const scheduleBoostExpirationJob = () => {
     console.log('🕒 Scheduling boost expiration job...');
     // 1sec por por hobe
-    cron.schedule('*/1 * * * *', async () => {
+    cron.schedule('0 0 * * *', async () => {
         console.log('🚀 Running boost expiration job at:', new Date().toISOString());
         
         try {
