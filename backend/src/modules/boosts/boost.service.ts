@@ -54,16 +54,26 @@ const boostListing = async (
     throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
   }
 
+  // Ensure the user is not trying to boost their own listing if that's a rule
+  // (Assuming a user can boost any listing for now)
+
   const boostType = await BoostType.findById(boostTypeId);
   if (!boostType) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Boost type not found');
+  }
+
+  // Check for an existing active boost for this listing
+  const existingBoost = await Boost.findOne({ listingId: listingId, endAt: { $gte: new Date() } });
+  if (existingBoost) {
+    throw new AppError(StatusCodes.CONFLICT, 'This listing is already boosted.');
   }
 
   const startAt = new Date();
   const endAt = new Date();
   endAt.setDate(startAt.getDate() + boostType.durationDays);
 
-  const boost = await Boost.create({
+  // Create the boost document
+  await Boost.create({
     listingId,
     userId,
     boostTypeId,
@@ -71,7 +81,14 @@ const boostListing = async (
     endAt,
   });
 
-  return boost;
+  // Update the listing to set isBoosted to true
+  const updatedListing = await Listing.findByIdAndUpdate(
+    listingId,
+    { isBoosted: true },
+    { new: true }
+  );
+
+  return updatedListing;
 };
 
 const getListingBoosts = async (listingId: string) => {
