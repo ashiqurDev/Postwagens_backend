@@ -8,7 +8,7 @@ import {
   deleteImageFromCLoudinary,
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
-import '../users/user.model'; // Import user model to resolve ref in post model
+import '../users/user.model'; 
 import { BoostService } from '../boosts/boost.service';
 
 
@@ -59,16 +59,38 @@ const getAllPostsService = async (query: Record<string, string>) => {
   const result = await postQuery.build();
   const meta = await postQuery.getMeta();
 
-  // Fetch active boosts
-  const activeBoosts = await BoostService.getActiveBoosts();
+  // --- Improved Algorithm for Boost Injection ---
+
+  // 1. Fetch active boosts
+  let activeBoosts = await BoostService.getActiveBoosts();
+
+  // 2. Shuffle the boosts for randomness (Fisher-Yates shuffle)
+  const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+  activeBoosts = shuffleArray(activeBoosts);
+  
   const combinedFeed: any[] = [];
   const injectionInterval = 1; // Inject a boost every 1 posts
+  const page = meta.page; // get current page from meta
+  const limit = meta.limit; // get limit per page
 
+  // 3. Determine which boosts to show on this page
+  const boostsPerPage = Math.floor(limit / injectionInterval);
+  const startBoostIndex = (page - 1) * boostsPerPage;
+  const endBoostIndex = startBoostIndex + boostsPerPage;
+  const boostsForThisPage = activeBoosts.slice(startBoostIndex, endBoostIndex);
+
+  // 4. Inject the page-specific boosts into the feed
   let boostIndex = 0;
   result.forEach((post, index) => {
     combinedFeed.push({ type: 'post', data: post });
-    if ((index + 1) % injectionInterval === 0 && boostIndex < activeBoosts.length) {
-      combinedFeed.push({ type: 'boost', data: activeBoosts[boostIndex] });
+    if ((index + 1) % injectionInterval === 0 && boostIndex < boostsForThisPage.length) {
+      combinedFeed.push({ type: 'boost', data: boostsForThisPage[boostIndex] });
       boostIndex++;
     }
   });
