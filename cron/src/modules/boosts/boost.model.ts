@@ -20,6 +20,10 @@ const boostSchema = new Schema<IBoost>(
       ref: 'BoostType',
       required: true,
     },
+    processed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
