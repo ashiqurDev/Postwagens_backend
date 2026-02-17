@@ -22,4 +22,6 @@ export interface IListing {
   sold: boolean;
   sellerId: Types.ObjectId;
   isBoosted?: boolean;
+  viewCount?: number;
+  inquiryCount?: number;
 }

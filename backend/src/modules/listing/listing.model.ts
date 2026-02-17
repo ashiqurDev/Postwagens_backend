@@ -23,6 +23,14 @@ const listingSchema = new Schema<IListing>(
     sold: { type: Boolean, default: false },
     sellerId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
     isBoosted: { type: Boolean, default: false },
+    viewCount: {
+    type: Number,
+    default: 0,
+  },
+  inquiryCount: {
+    type: Number,
+    default: 0,
+  },
   },
   {
     timestamps: true,

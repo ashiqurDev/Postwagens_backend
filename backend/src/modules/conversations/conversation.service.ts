@@ -5,6 +5,7 @@ import { Conversation } from './conversation.model';
 import { getSocketIo } from '../../socket/socket';
 import { Message } from './message.model';
 import mongoose from 'mongoose';
+import Listing from '../listing/listing.model';
 
 const createConversation = async (
   participantAId: string,
@@ -135,6 +136,48 @@ const markMessagesAsRead = async (conversationId: string, userId: string) => {
     return null;
 };
 
+const messageSeller = async (listingId: string, senderId: string, text: string) => {
+  const listing = await Listing.findByIdAndUpdate(listingId, {
+    $inc: { inquiryCount: 1 },
+  });
+
+  if (!listing) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
+  }
+
+  const sellerId = listing.sellerId.toString();
+
+  if (sellerId === senderId) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'You cannot message yourself');
+  }
+
+  let conversation = await Conversation.findOne({
+    $or: [
+      { participantAId: sellerId, participantBId: senderId },
+      { participantAId: senderId, participantBId: sellerId },
+    ],
+  });
+
+  if (!conversation) {
+    conversation = await Conversation.create({
+      participantAId: senderId,
+      participantBId: sellerId,
+    });
+  }
+
+  const message = await Message.create({
+    conversationId: conversation._id,
+    senderId,
+    text,
+  });
+
+  const io = getSocketIo();
+  io.to(sellerId).emit('newMessage', message);
+
+  return message;
+};
+
+
 
 export const ConversationService = {
   createConversation,
@@ -142,4 +185,5 @@ export const ConversationService = {
   getConversationsForUser,
   getMessagesForConversation,
   markMessagesAsRead,
+  messageSeller
 };

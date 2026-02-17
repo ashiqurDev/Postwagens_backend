@@ -65,7 +65,12 @@ const getAllListingsService = async (query: Record<string, string>) => {
 
 // Get Single Listing
 const getSingleListingService = async (id: string) => {
-  const listing = await Listing.findById(id).populate('sellerId');
+  const listing = await Listing.findByIdAndUpdate(
+    id,
+    { $inc: { viewCount: 1 } },
+    { new: true }
+  ).populate('sellerId');
+
   if (!listing) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
   }

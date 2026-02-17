@@ -37,4 +37,10 @@ router.patch(
   ConversationController.markMessagesAsRead,
 );
 
+router.post(
+  '/:listingId/sendMessage',
+  checkAuth(...Object.values(Role)),
+  ConversationController.messageSeller
+);
+
 export const ConversationRoutes = router;

@@ -81,6 +81,21 @@ const markMessagesAsRead = CatchAsync(async (req, res) => {
     });
 });
 
+const messageSeller = CatchAsync(async (req, res) => {
+    const { listingId } = req.params;
+    const { text } = req.body;
+    // @ts-ignore
+    const userId = req.user.userId;
+
+    const result = await ConversationService.messageSeller(listingId as string, userId, text);
+    SendResponse(res,{
+      statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Message sent successfully',
+        data: result
+    });
+});
+
 
 export const ConversationController = {
     createConversation,
@@ -88,4 +103,5 @@ export const ConversationController = {
     getConversationsForUser,
     getMessagesForConversation,
     markMessagesAsRead,
+    messageSeller
 };
