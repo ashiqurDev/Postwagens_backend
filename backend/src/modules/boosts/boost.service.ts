@@ -106,6 +106,53 @@ const getActiveBoosts = async () => {
     return boosts;
 };
 
+const getRevenueOverview = async (year: number) => {
+  const result = await Boost.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [{ $year: '$createdAt' }, year],
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: 'boosttypes',
+        localField: 'boostTypeId',
+        foreignField: '_id',
+        as: 'boostType',
+      },
+    },
+    {
+      $unwind: '$boostType',
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+        },
+        totalRevenue: { $sum: '$boostType.price' },
+      },
+    },
+    {
+      $sort: {
+        '_id.year': 1,
+        '_id.month': 1,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        year: '$_id.year',
+        month: '$_id.month',
+        totalRevenue: 1,
+      },
+    },
+  ]);
+  return result;
+};
+
 
 export const BoostService = {
   createBoostType,
@@ -117,4 +164,5 @@ export const BoostService = {
   getListingBoosts,
   getUserBoosts,
   getActiveBoosts,
+  getRevenueOverview,
 };

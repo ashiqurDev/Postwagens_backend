@@ -109,6 +109,18 @@ const getActiveBoosts = CatchAsync(async (req, res) => {
     });
 });
 
+const getRevenueOverview = CatchAsync(async (req, res) => {
+  const year = Number(req.query.year || new Date().getFullYear());
+  const result = await BoostService.getRevenueOverview(year);
+  SendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Revenue overview retrieved successfully',
+    data: result,
+  });
+});
+
+
 export const BoostController = {
   createBoostType,
   getAllBoostTypes,
@@ -119,4 +131,5 @@ export const BoostController = {
   getListingBoosts,
   getUserBoosts,
   getActiveBoosts,
+  getRevenueOverview,
 };
