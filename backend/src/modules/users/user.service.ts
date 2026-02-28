@@ -212,7 +212,6 @@ const userUpdateService = async (
   payload: Partial<IUser>,
   decodedToken: JwtPayload
 ) => {
-  console.log('payload: ', payload);
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
@@ -432,6 +431,27 @@ const purchaseBadgeService = async (userId: string, badgeId: string) => {
   return user;
 };
 
+
+const updateSuspendStatusService = async (userId: string, isActive: IsActive, decodedToken: JwtPayload) => {
+  const user = await User.findById(userId);
+  
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (user.role === Role.ADMIN) {
+    throw new AppError(StatusCodes.FORBIDDEN, 'Admins cannot be suspended!');
+  }
+
+  user.isActive = isActive;
+
+  await user.save();
+
+  return user;
+};
+
+
+
 // EXPORT ALL SERVICE
 export const userServices = {
   createUserService,
@@ -442,5 +462,6 @@ export const userServices = {
   userDeleteService,
   getAllUserService,
   purchaseBadgeService,
+  updateSuspendStatusService,
 //   getProfileService,
 };

@@ -4,6 +4,10 @@ import { SendResponse } from '../../utils/SendResponse';
 import { userServices } from './user.service';
 import { JwtPayload } from 'jsonwebtoken';
 import { uploadBufferToCloudinary } from '../../config/cloudinary.config';
+import { IsActive } from './user.interface';
+import User from './user.model';
+import AppError from '../../errorHelpers/AppError';
+import { StatusCodes } from 'http-status-codes';
 
 // REGISTER ACCOUNT
 const registerUser = CatchAsync(async (req: Request, res: Response) => {
@@ -144,6 +148,29 @@ const purchaseBadge = CatchAsync(async (req: Request, res: Response) => {
     });
   });
 
+
+  const updateSuspendStatus = CatchAsync(async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const decodedToken = req.user as JwtPayload;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+    }
+
+    const newIsActiveStatus = user.isActive === IsActive.ACTIVE ? IsActive.BLOCKED : IsActive.ACTIVE;
+    // @ts-ignore
+    const result = await userServices.updateSuspendStatusService(userId, newIsActiveStatus, decodedToken);
+
+    SendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: 'User suspended successfully!',
+      data: result,
+    });
+  });
+
 // EXPORT ALL CONTROLLERS
 export const userControllers = {
   registerUser,
@@ -154,5 +181,6 @@ export const userControllers = {
   userDelete,
   getAllUser,
   purchaseBadge,
+  updateSuspendStatus,
   //   getProfile,
 };

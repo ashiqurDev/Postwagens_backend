@@ -81,4 +81,10 @@ router.post(
   userControllers.verifyOTP
 );
 
+router.put(
+  '/suspend/:userId',
+  checkAuth(...Object.keys(Role)),
+  userControllers.updateSuspendStatus
+)
+
 export const userRoutes = router;
