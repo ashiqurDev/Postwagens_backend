@@ -57,6 +57,7 @@ export const sendEmail = async ({
     });
   } catch (error: any) {
     console.log('Email sending error', error.message);
+    console.error('EMAIL ERROR 👉', error);
     throw new AppError(400, 'Email error');
   }
 };
