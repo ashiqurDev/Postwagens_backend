@@ -137,19 +137,22 @@ const updatePostService = async (
     // Delete old images from Cloudinary
     if (post.imagesAndVideos && post.imagesAndVideos.length > 0) {
       for (const imageUrl of post.imagesAndVideos) {
-        await deleteImageFromCLoudinary(imageUrl);
+        await deleteImageFromCLoudinary(imageUrl.url);
       }
     }
 
     // Upload new images
-    const imagesAndVideos: string[] = [];
+    const imagesAndVideos: IImageAndVideo[] = [];
     for (const file of files) {
       const uploadedFile = await uploadBufferToCloudinary(
         file.buffer,
         file.originalname,
       );
       if (uploadedFile) {
-        imagesAndVideos.push(uploadedFile.secure_url);
+        imagesAndVideos.push({
+          type: file.mimetype.startsWith('image') ? 'image' : 'video',
+          url: uploadedFile.secure_url,
+        });
       }
     }
     payload.imagesAndVideos = imagesAndVideos;
@@ -181,7 +184,7 @@ const deletePostService = async (id: string, user: JwtPayload) => {
   // Delete images from Cloudinary before deleting the post
   if (post.imagesAndVideos && post.imagesAndVideos.length > 0) {
     for (const imageUrl of post.imagesAndVideos) {
-      await deleteImageFromCLoudinary(imageUrl);
+      await deleteImageFromCLoudinary(imageUrl.url);
     }
   }
 
