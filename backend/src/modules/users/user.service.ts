@@ -115,11 +115,22 @@ const getMeService = async (userId: string) => {
       },
     },
 
+    // Lookup for user's listings
+    {
+      $lookup: {
+        from: 'listings',
+        localField: '_id',
+        foreignField: 'sellerId',
+        as: 'listings',
+      },
+    },
+
     // Stage 4: Add counts
     {
       $addFields: {
         followingCount: { $size: '$following' },
         followerCount: { $size: '$followers' },
+        listingCount: { $size: '$listings' },
       },
     },
 
@@ -130,6 +141,7 @@ const getMeService = async (userId: string) => {
         interests: 0,
         following: 0, // remove the array
         followers: 0, // remove the array
+        listings: 0, // remove the array
       },
     },
   ]);

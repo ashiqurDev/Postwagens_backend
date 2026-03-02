@@ -63,7 +63,6 @@ const getAllUser = CatchAsync(async (req: Request, res: Response) => {
 
 // USER UPDATE
 const userUpdate = CatchAsync(async (req: Request, res: Response) => {
-  const userId = req.params.userId;
   const body = req.body;
   const decodedToken = req.user as JwtPayload;
 
@@ -81,7 +80,7 @@ const userUpdate = CatchAsync(async (req: Request, res: Response) => {
   }
 
   const result = await userServices.userUpdateService(
-    userId as string,
+    decodedToken.userId as string,
     payload,
     decodedToken
   );

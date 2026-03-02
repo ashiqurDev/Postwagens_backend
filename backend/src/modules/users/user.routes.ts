@@ -55,7 +55,7 @@ router.get(
 
 // UPDATE USER
 router.patch(
-  '/:userId',
+  '/update',
   checkAuth(...Object.keys(Role)),
   multerUpload.single('file'),
   validateRequest(userUpdateZodSchema),
