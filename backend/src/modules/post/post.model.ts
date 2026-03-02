@@ -5,7 +5,16 @@ const postSchema = new Schema<TPost>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
     text: { type: String, required: true },
-    imagesAndVideos: [{ type: String }],
+    imagesAndVideos: [
+      {
+        type: {
+          type: String,
+        },
+        url: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
