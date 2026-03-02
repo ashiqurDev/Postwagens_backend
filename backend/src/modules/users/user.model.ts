@@ -43,7 +43,7 @@ const authProviderSchema = new mongoose.Schema<IAuthProvider>(
 const userSchema = new mongoose.Schema<IUser>(
   {
     fullName: { type: String },
-    bio: { type: String },
+    bio: { type: String , default: null},
     email: { type: String, required: true, unique: true, lowercase: true },
     avatar: { type: String },
     password: { type: String, select: false },
