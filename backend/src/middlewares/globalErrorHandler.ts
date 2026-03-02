@@ -26,7 +26,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
       message: issue.message,
     }));
     errorResponse.message = 'Validation Error';
-    errorResponse.errorDetails = { issues };
+    errorResponse.errorDetails = [ ...issues ];
     statusCode = StatusCodes.BAD_REQUEST;
   } else if (err.name === 'CastError') {
     errorResponse.message = `Invalid ID: ${err.value}`;

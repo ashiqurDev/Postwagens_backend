@@ -20,6 +20,12 @@ const postSchema = new Schema<TPost>(
     timestamps: true,
     toJSON: {
       virtuals: true,
+      transform: (doc, ret) => {
+        // 🔁 rename userId -> user
+        (ret as any).user = ret.userId;
+        delete (ret as any).userId;
+        return ret;
+      },
     },
   },
 );

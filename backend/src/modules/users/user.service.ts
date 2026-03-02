@@ -95,21 +95,41 @@ const getMeService = async (userId: string) => {
     // Stage 1: Matching
     { $match: { _id: new Types.ObjectId(userId) } },
 
-    // Stage 2: Join with interests
-    // {
-    //   $lookup: {
-    //     from: 'categories',
-    //     localField: 'interests',
-    //     foreignField: '_id',
-    //     as: 'interest',
-    //   },
-    // },
+    // Stage 2: Lookup for people the user is following
+    {
+      $lookup: {
+        from: 'follows',
+        localField: '_id',
+        foreignField: 'follower',
+        as: 'following',
+      },
+    },
+
+    // Stage 3: Lookup for people following the user
+    {
+      $lookup: {
+        from: 'follows',
+        localField: '_id',
+        foreignField: 'following',
+        as: 'followers',
+      },
+    },
+
+    // Stage 4: Add counts
+    {
+      $addFields: {
+        followingCount: { $size: '$following' },
+        followerCount: { $size: '$followers' },
+      },
+    },
 
     // Projection
     {
       $project: {
         password: 0,
         interests: 0,
+        following: 0, // remove the array
+        followers: 0, // remove the array
       },
     },
   ]);
