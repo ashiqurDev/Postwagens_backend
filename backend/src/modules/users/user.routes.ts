@@ -27,11 +27,11 @@ router.post(
 );
 
 // GET USER PROFILE
-// router.get(
-//   '/profile/:userId',
-//   checkAuth(...Object.keys(Role)),
-//   userControllers.getProfile
-// );
+router.get(
+  '/profile/:userId',
+  checkAuth(...Object.keys(Role)),
+  userControllers.getProfile
+);
 
 // GET ALL USER LIST
 router.get('/', checkAuth(...Object.values(Role)), userControllers.getAllUser);

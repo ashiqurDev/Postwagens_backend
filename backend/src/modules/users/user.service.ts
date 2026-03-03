@@ -13,6 +13,8 @@ import env from '../../config/env';
 import { redisClient } from '../../config/redis.config';
 import { deleteImageFromCLoudinary } from '../../config/cloudinary.config';
 import { VerifiedBadgePrice } from '../verified_badge_prices/verified_badge_prices.model';
+import { Follow } from '../follow/follow.model';
+import Post from '../post/post.model';
 
 // CREATE USER
 const createUserService = async (payload: Partial<IUser>) => {
@@ -172,71 +174,99 @@ const getMeService = async (userId: string) => {
 };
 
 // GET PROFILE
-// const getProfileService = async (userId: string) => {
-//   if (!userId) {
-//     throw new AppError(400, 'User ID is required');
-//   }
+const getProfileService = async (
+  profileUserId: string,
+  currentUserId?: string,
+) => {
+  if (!profileUserId) {
+    throw new AppError(400, 'User ID is required');
+  }
 
-//   const _user = await User.aggregate([
-//     // Stage 1: Matching
-//     { $match: { _id: new Types.ObjectId(userId) } },
+  const _user = await User.aggregate([
+    // Stage 1: Matching
+    { $match: { _id: new Types.ObjectId(profileUserId) } },
 
-//     // Stage 2: Join with interests
-//     {
-//       $lookup: {
-//         from: 'categories',
-//         localField: 'interests',
-//         foreignField: '_id',
-//         as: 'interest',
-//       },
-//     },
+    // Stage 2: Lookup for people the user is following
+    {
+      $lookup: {
+        from: 'follows',
+        localField: '_id',
+        foreignField: 'follower',
+        as: 'following',
+      },
+    },
 
-//     // Projection
-//     {
-//       $project: {
-//         password: 0,
-//         interests: 0,
-//       },
-//     },
-//   ]);
+    // Stage 3: Lookup for people following the user
+    {
+      $lookup: {
+        from: 'follows',
+        localField: '_id',
+        foreignField: 'following',
+        as: 'followers',
+      },
+    },
 
-//   const user = _user[0];
-//   if (!user) {
-//     throw new AppError(404, 'User not found');
-//   }
+    // Stage 4: Lookup for user's posts
+    {
+      $lookup: {
+        from: 'posts',
+        localField: '_id',
+        foreignField: 'userId',
+        as: 'posts',
+      },
+    },
 
- 
 
-//   // REPUTATION AS HOST OR ORGANIZER
-//   const myEvents = await Event.find({ host: userId }); // MY EVENTS
-//   const myEventIds = myEvents.map((e) => e._id.toString()); // EXTRACT EVENT ID
-//   const getMyEventVoting = await EventVote.find({ event: { $in: myEventIds } }); // GET VOTE FOR MY EVENTS
+    // Lookup for users's listing
+    {
+      $lookup: {
+        from: 'listings',
+        localField: '_id',
+        foreignField: 'sellerId',
+        as: 'listings',
+      },
+    },
 
-//   const totalUpvote = getMyEventVoting.filter(
-//     (v) => v.voteType === VotingType.UPVOTE
-//   ); // FILTER ONLY UPVOTE
-//   const totalDownvote = getMyEventVoting.filter(
-//     (v) => v.voteType === VotingType.DOWNVOTE
-//   ); // FILTER ONLY DOWNVOTE
+    // Stage 5: Add counts
+    {
+      $addFields: {
+        followingCount: { $size: '$following' },
+        followerCount: { $size: '$followers' },
+        postCount: { $size: '$posts' },
+        listingCount: { $size: '$listings' },
+      },
+    },
 
-//   const host_or_organizer_reputation =
-//     totalUpvote.length - totalDownvote.length;
+    // Projection
+    {
+      $project: {
+        password: 0,
+        following: 0, // remove the array
+        followers: 0, // remove the array
+        posts: 0, // remove the array
+        listings: 0, // remove the array
+      },
+    },
+  ]);
 
-//   const [totalEventsJoined, totalEventsOrganized, totalFriends] =
-//     await Promise.all([
-//       totalEventsJoinedPromise,
-//       totalEventsOrganizedPromise,
-//       totalFriendsPormise,
-//     ]);
+  const user = _user[0];
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
 
-//   return {
-//     totalEventsJoined,
-//     totalEventsOrganized,
-//     totalFriends,
-//     reputation: host_or_organizer_reputation,
-//     ...user,
-//   };
-// };
+  // Check if the current user is following this user
+  if (currentUserId) {
+    const isFollowing = await Follow.findOne({
+      follower: currentUserId,
+      following: profileUserId,
+    });
+    user.isFollowing = !!isFollowing;
+  } else {
+    user.isFollowing = false;
+  }
+
+  return user;
+};
 
 // USER UPDATE
 const userUpdateService = async (
@@ -495,5 +525,5 @@ export const userServices = {
   getAllUserService,
   purchaseBadgeService,
   updateSuspendStatusService,
-//   getProfileService,
+  getProfileService,
 };
