@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import { IListing, ListingCategory } from './listing.interface';
-import { Boost } from '../boosts/boost.model';
 
 const listingSchema = new Schema<IListing>(
   {
@@ -46,6 +45,21 @@ const listingSchema = new Schema<IListing>(
     }
   }
 );
+
+listingSchema.virtual('seller', {
+  ref: 'user',
+  localField: 'sellerId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+listingSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete (ret as any).sellerId;
+    return ret;
+  }
+});
 
 listingSchema.index({ title: 'text', description: 'text', location: 'text' });
 

@@ -8,7 +8,6 @@ import {
   deleteImageFromCLoudinary,
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
-import User from '../users/user.model';
 
 // Create Listing
 const createListingService = async (
@@ -41,7 +40,10 @@ const createListingService = async (
 
 // Get My Listings
 const getMyListingsService = async (user: JwtPayload) => {
-  const listings = await Listing.find({ sellerId: user.userId }).populate('sellerId', 'fullName email');
+  const listings = await Listing.find({ sellerId: user.userId }).populate({
+    path: 'seller',
+    select: 'fullName email avatar',
+  });
   return listings;
 };
 
@@ -53,6 +55,11 @@ const getAllListingsService = async (query: Record<string, string>) => {
     .sort()
     .paginate()
     .select();
+
+  listingQuery.queryModel.populate({
+    path: 'seller',
+    select: 'fullName email avatar',
+  });
 
   const result = await listingQuery.build();
   const meta = await listingQuery.getMeta();
@@ -69,7 +76,10 @@ const getSingleListingService = async (id: string) => {
     id,
     { $inc: { viewCount: 1 } },
     { new: true }
-  ).populate('sellerId');
+  ).populate({
+    path: 'seller',
+    select: 'fullName email avatar',
+  });
 
   if (!listing) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
