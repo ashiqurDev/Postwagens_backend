@@ -35,7 +35,6 @@ const getCommentsForPost = CatchAsync(async (req, res) => {
     statusCode: StatusCodes.OK,
     success: true,
     message: 'Comments for the post retrieved successfully',
-    meta: result.meta,
     data: result.result,
   });
 });
@@ -75,9 +74,21 @@ const deleteComment = CatchAsync(async (req, res) => {
   });
 });
 
+const getCommentReplies = CatchAsync(async (req, res) => {
+  const { commentId } = req.params;
+  const result = await CommentService.getCommentReplies(commentId as string, req.query);
+  SendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Replies for the comment retrieved successfully',
+    data: result.result,
+  });
+});
+
 export const CommentController = {
   createComment,
   getCommentsForPost,
+  getCommentReplies,
   updateComment,
   deleteComment,
 };

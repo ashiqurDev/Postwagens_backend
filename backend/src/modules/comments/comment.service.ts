@@ -71,7 +71,10 @@ const getCommentsForPost = async (
   }
 
   const commentQuery = new QueryBuilder(
-    Comment.find({ postId }).populate('userId'),
+    Comment.find({ postId, parentId: null }).populate({
+      path: 'user',
+      select: 'fullName email avatar',
+    }),
     // @ts-ignore
     query,
   )
@@ -134,9 +137,51 @@ const deleteComment = async (commentId: string, userId: string) => {
   return null;
 };
 
+const getCommentReplies = async (
+  commentId: string,
+  query: Record<string, unknown>,
+) => {
+  const parentComment = await Comment.findById(commentId);
+
+  if (!parentComment) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Parent comment not found');
+  }
+
+  const replyQuery = new QueryBuilder(
+    Comment.find({ parentId: commentId }).populate([
+      {
+        path: 'user',
+        select: 'fullName email avatar',
+      },
+      {
+        path: 'parentComment',
+        populate: {
+          path: 'user',
+          select: 'fullName email avatar',
+        },
+      },
+    ]),
+    // @ts-ignore
+    query,
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .select();
+
+  const result = await replyQuery.build();
+  const meta = await replyQuery.getMeta();
+
+  return {
+    meta,
+    result,
+  };
+};
+
 export const CommentService = {
   createComment,
   getCommentsForPost,
+  getCommentReplies,
   updateComment,
   deleteComment,
 };

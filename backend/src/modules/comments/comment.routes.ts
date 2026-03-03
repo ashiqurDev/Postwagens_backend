@@ -18,6 +18,11 @@ postCommentRouter.get('/comments', CommentController.getCommentsForPost);
 
 const commentRouter = express.Router();
 
+commentRouter.get(
+  '/:commentId/replies',
+  CommentController.getCommentReplies,
+);
+
 commentRouter.patch(
   '/:commentId',
   checkAuth(...Object.values(Role)),
