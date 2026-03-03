@@ -8,8 +8,9 @@ import {
   deleteImageFromCLoudinary,
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
-import '../users/user.model'; 
+import '../users/user.model';
 import { BoostService } from '../boosts/boost.service';
+import mongoose from 'mongoose';
 
 
 // Create Post
@@ -50,24 +51,128 @@ const getMyPostsService = async (user: JwtPayload) => {
   return posts;
 };
 
-// Get All Posts
-const getAllPostsService = async (query: Record<string, string>) => {
-  const postQuery = new QueryBuilder(Post.find().populate('userId', 'fullName avatar isVerified'), query)
-    .textSearch()
-    .filter()
-    .sort()
-    .paginate()
-    .select();
 
-  const result = await postQuery.build();
-  const meta = await postQuery.getMeta();
+// Get All Posts
+const getAllPostsService = async (
+  query: Record<string, any>,
+  user: JwtPayload,
+) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const sort = query.sort || '-createdAt';
+  const searchTerm = query.searchTerm;
+
+  const pipeline: any[] = [];
+
+  // Text search
+  if (searchTerm) {
+    pipeline.push({
+      $match: {
+        $text: { $search: searchTerm },
+      },
+    });
+  }
+
+  // Other filters (excluding reserved keywords)
+  const excludeField = ['page', 'limit', 'sort', 'fields', 'searchTerm'];
+  const filter: Record<string, any> = {};
+  for (const key in query) {
+    if (!excludeField.includes(key)) {
+      filter[key] = query[key];
+    }
+  }
+  if (Object.keys(filter).length > 0) {
+    pipeline.push({ $match: filter });
+  }
+  
+  // Join with users
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'userId',
+      foreignField: '_id',
+      as: 'user',
+    },
+  });
+
+  // Deconstruct user array
+  pipeline.push({
+    $unwind: '$user',
+  });
+
+  if (user) {
+    // Join with likes
+    pipeline.push({
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  {
+                    $eq: ['$userId', new mongoose.Types.ObjectId(user.userId)],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'userLike',
+      },
+    });
+    // Add isLiked field
+    pipeline.push({
+      $addFields: {
+        isLiked: { $gt: [{ $size: '$userLike' }, 0] },
+      },
+    });
+  } else {
+    pipeline.push({
+      $addFields: {
+        isLiked: false,
+      },
+    });
+  }
+
+  // Sorting
+  const sortStage: Record<string, any> = {};
+  if (sort) {
+    const [field, order] = sort.startsWith('-')
+      ? [sort.slice(1), -1]
+      : [sort, 1];
+    sortStage[field] = order;
+    pipeline.push({ $sort: sortStage });
+  }
+
+  // Pagination
+  pipeline.push({ $skip: (page - 1) * limit });
+  pipeline.push({ $limit: limit });
+
+  // Projection
+  pipeline.push({
+    $project: {
+      userLike: 0,
+      'user.password': 0,
+      userId: 0,
+    },
+  });
+
+  const result = await Post.aggregate(pipeline);
+
+  const total = await Post.countDocuments(filter);
+  const meta = {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 
   // --- Improved Algorithm for Boost Injection ---
-
-  // 1. Fetch active boosts
   let activeBoosts = await BoostService.getActiveBoosts();
 
-  // 2. Shuffle the boosts for randomness (Fisher-Yates shuffle)
   const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -76,23 +181,21 @@ const getAllPostsService = async (query: Record<string, string>) => {
     return array;
   };
   activeBoosts = shuffleArray(activeBoosts);
-  
-  const combinedFeed: any[] = [];
-  const injectionInterval = 1; // Inject a boost every 1 posts
-  const page = meta.page; // get current page from meta
-  const limit = meta.limit; // get limit per page
 
-  // 3. Determine which boosts to show on this page
+  const combinedFeed: any[] = [];
+  const injectionInterval = 1;
   const boostsPerPage = Math.floor(limit / injectionInterval);
   const startBoostIndex = (page - 1) * boostsPerPage;
   const endBoostIndex = startBoostIndex + boostsPerPage;
   const boostsForThisPage = activeBoosts.slice(startBoostIndex, endBoostIndex);
 
-  // 4. Inject the page-specific boosts into the feed
   let boostIndex = 0;
-  result.forEach((post, index) => {
+  result.forEach((post: any, index: number) => {
     combinedFeed.push({ type: 'post', data: post });
-    if ((index + 1) % injectionInterval === 0 && boostIndex < boostsForThisPage.length) {
+    if (
+      (index + 1) % injectionInterval === 0 &&
+      boostIndex < boostsForThisPage.length
+    ) {
       combinedFeed.push({ type: 'boost', data: boostsForThisPage[boostIndex] });
       boostIndex++;
     }
@@ -105,12 +208,74 @@ const getAllPostsService = async (query: Record<string, string>) => {
 };
 
 // Get Single Post
-const getSinglePostService = async (id: string) => {
-  const post = await Post.findById(id).populate('userId');
-  if (!post) {
+const getSinglePostService = async (id: string, user?: JwtPayload) => {
+  const pipeline: any[] = [
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+  ];
+
+  if (user) {
+    pipeline.push({
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  { $eq: ['$userId', new mongoose.Types.ObjectId(user.userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'userLike',
+      },
+    });
+    pipeline.push({
+      $addFields: {
+        isLiked: { $gt: [{ $size: '$userLike' }, 0] },
+      },
+    });
+  } else {
+    pipeline.push({
+      $addFields: {
+        isLiked: false,
+      },
+    });
+  }
+
+  pipeline.push({
+    $project: {
+      userLike: 0,
+      'user.password': 0,
+      userId: 0,
+    },
+  });
+
+  const result = await Post.aggregate(pipeline);
+
+  if (result.length === 0) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
-  return post;
+
+  return result[0];
 };
 
 // Update Post

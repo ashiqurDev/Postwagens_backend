@@ -47,6 +47,7 @@ const getAllPosts = CatchAsync(async (req: Request, res: Response) => {
 
   const { meta, result } = await postServices.getAllPostsService(
     sanitizedQuery,
+    req.user as JwtPayload,
   );
 
   SendResponse(res, {
@@ -61,7 +62,8 @@ const getAllPosts = CatchAsync(async (req: Request, res: Response) => {
 // Get Single Post
 const getSinglePost = CatchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await postServices.getSinglePostService(id as string);
+  const user = req.user as JwtPayload | undefined;
+  const result = await postServices.getSinglePostService(id as string, user);
 
   SendResponse(res, {
     success: true,

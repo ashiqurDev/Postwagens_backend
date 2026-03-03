@@ -21,7 +21,7 @@ router.post(
   postControllers.createPost,
 );
 
-router.get('/', postControllers.getAllPosts);
+router.get('/',  checkAuth(...Object.values(Role)), postControllers.getAllPosts);
 
 router.get(
   '/my-posts',
@@ -32,7 +32,7 @@ router.get(
 router.use('/:id', LikeRoutes);
 router.use('/:id', PostCommentRoutes);
 
-router.get('/:id', postControllers.getSinglePost);
+router.get('/:id', checkAuth(...Object.values(Role)),postControllers.getSinglePost);
 
 router.patch(
   '/:id',
