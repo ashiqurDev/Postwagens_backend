@@ -24,4 +24,8 @@ export interface IListing {
   isBoosted?: boolean;
   viewCount?: number;
   inquiryCount?: number;
+  year?: number;
+  mileage?: number;
+  trans?: string;
+  color?: string;
 }

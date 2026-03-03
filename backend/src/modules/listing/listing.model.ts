@@ -31,6 +31,10 @@ const listingSchema = new Schema<IListing>(
     type: Number,
     default: 0,
   },
+  year: { type: Number },
+  mileage: { type: Number },
+  trans: { type: String },
+  color: { type: String },
   },
   {
     timestamps: true,

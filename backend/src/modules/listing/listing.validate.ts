@@ -14,6 +14,10 @@ export const createListingZodSchema = z.object({
   category: z.nativeEnum(ListingCategory),
   condition: z.string(),
   location: z.string(),
+  year: z.coerce.number().optional(),
+  mileage: z.coerce.number().optional(),
+  trans: z.string().optional(),
+  color: z.string().optional(),
 });
 
 export const updateListingZodSchema = z.object({
@@ -27,4 +31,8 @@ export const updateListingZodSchema = z.object({
   sold: z.boolean().optional(),
   isBoosted: z.boolean().optional(),
   boostExpiresAt: z.date().optional(),
+  year: z.coerce.number().optional(),
+  mileage: z.coerce.number().optional(),
+  trans: z.string().optional(),
+  color: z.string().optional(),
 });
