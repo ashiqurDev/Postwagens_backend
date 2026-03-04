@@ -21,9 +21,9 @@ router.post(
 
 router.get('/my-listings', checkAuth(...Object.values(Role)), listingControllers.getMyListings);
 
-router.get('/', listingControllers.getAllListings);
+router.get('/', checkAuth(...Object.values(Role)), listingControllers.getAllListings);
 
-router.get('/:id', listingControllers.getSingleListing);
+router.get('/:id',checkAuth(...Object.values(Role)), listingControllers.getSingleListing);
 
 router.patch(
   '/:id',

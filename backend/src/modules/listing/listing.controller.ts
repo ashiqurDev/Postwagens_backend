@@ -45,8 +45,10 @@ const getAllListings = CatchAsync(async (req: Request, res: Response) => {
     }
   }
 
+  const user = req.user as JwtPayload | undefined;
   const { meta, result } = await listingServices.getAllListingsService(
-    sanitizedQuery
+    sanitizedQuery,
+    user,
   );
 
   SendResponse(res, {
@@ -61,7 +63,11 @@ const getAllListings = CatchAsync(async (req: Request, res: Response) => {
 // Get Single Listing
 const getSingleListing = CatchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await listingServices.getSingleListingService(id as string);
+  const user = req.user as JwtPayload | undefined;
+  const result = await listingServices.getSingleListingService(
+    id as string,
+    user,
+  );
 
   SendResponse(res, {
     success: true,

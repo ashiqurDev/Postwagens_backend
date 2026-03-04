@@ -8,6 +8,7 @@ import {
   deleteImageFromCLoudinary,
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
+import mongoose from 'mongoose';
 
 // Create Listing
 const createListingService = async (
@@ -48,21 +49,123 @@ const getMyListingsService = async (user: JwtPayload) => {
 };
 
 // Get All Listings
-const getAllListingsService = async (query: Record<string, string>) => {
-  const listingQuery = new QueryBuilder(Listing.find(), query)
-    .textSearch()
-    .filter()
-    .sort()
-    .paginate()
-    .select();
+const getAllListingsService = async (
+  query: Record<string, any>,
+  user?: JwtPayload,
+) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const sort = query.sort || '-createdAt';
+  const searchTerm = query.searchTerm;
 
-  listingQuery.queryModel.populate({
-    path: 'seller',
-    select: 'fullName email avatar',
+  const pipeline: any[] = [];
+
+  // Text search
+  if (searchTerm) {
+    pipeline.push({
+      $match: {
+        $text: { $search: searchTerm },
+      },
+    });
+  }
+
+  // Other filters
+  const excludeField = ['page', 'limit', 'sort', 'fields', 'searchTerm'];
+  const filter: Record<string, any> = {};
+  for (const key in query) {
+    if (!excludeField.includes(key)) {
+      filter[key] = query[key];
+    }
+  }
+  if (Object.keys(filter).length > 0) {
+    pipeline.push({ $match: filter });
+  }
+
+  // Join with users
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'sellerId',
+      foreignField: '_id',
+      as: 'seller',
+    },
   });
 
-  const result = await listingQuery.build();
-  const meta = await listingQuery.getMeta();
+  pipeline.push({
+    $unwind: '$seller',
+  });
+
+  if (user) {
+    // Join with bookmarks
+    pipeline.push({
+      $lookup: {
+        from: 'bookmarks',
+        let: { listingId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$listingId', '$$listingId'] },
+                  {
+                    $eq: [
+                      '$userId',
+                      new mongoose.Types.ObjectId(user.userId),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'userBookmark',
+      },
+    });
+    // Add isBookmarked field
+    pipeline.push({
+      $addFields: {
+        isBookmarked: { $gt: [{ $size: '$userBookmark' }, 0] },
+      },
+    });
+  } else {
+    pipeline.push({
+      $addFields: {
+        isBookmarked: false,
+      },
+    });
+  }
+
+  // Sorting
+  const sortStage: Record<string, any> = {};
+  if (sort) {
+    const [field, order] = sort.startsWith('-')
+      ? [sort.slice(1), -1]
+      : [sort, 1];
+    sortStage[field] = order;
+    pipeline.push({ $sort: sortStage });
+  }
+
+  // Pagination
+  pipeline.push({ $skip: (page - 1) * limit });
+  pipeline.push({ $limit: limit });
+
+  // Projection
+  pipeline.push({
+    $project: {
+      userBookmark: 0,
+      'seller.password': 0,
+    },
+  });
+
+  const result = await Listing.aggregate(pipeline);
+
+  const total = await Listing.countDocuments(filter);
+  const meta = {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 
   return {
     meta,
@@ -71,20 +174,81 @@ const getAllListingsService = async (query: Record<string, string>) => {
 };
 
 // Get Single Listing
-const getSingleListingService = async (id: string) => {
-  const listing = await Listing.findByIdAndUpdate(
-    id,
-    { $inc: { viewCount: 1 } },
-    { new: true }
-  ).populate({
-    path: 'seller',
-    select: 'fullName email avatar',
+const getSingleListingService = async (id: string, user?: JwtPayload) => {
+  const pipeline: any[] = [
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'sellerId',
+        foreignField: '_id',
+        as: 'seller',
+      },
+    },
+    {
+      $unwind: '$seller',
+    },
+  ];
+
+  if (user) {
+    pipeline.push({
+      $lookup: {
+        from: 'bookmarks',
+        let: { listingId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$listingId', '$$listingId'] },
+                  {
+                    $eq: [
+                      '$userId',
+                      new mongoose.Types.ObjectId(user.userId),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'userBookmark',
+      },
+    });
+    pipeline.push({
+      $addFields: {
+        isBookmarked: { $gt: [{ $size: '$userBookmark' }, 0] },
+      },
+    });
+  } else {
+    pipeline.push({
+      $addFields: {
+        isBookmarked: false,
+      },
+    });
+  }
+
+  // Add view count
+  await Listing.findByIdAndUpdate(id, { $inc: { viewCount: 1 } });
+
+  pipeline.push({
+    $project: {
+      userBookmark: 0,
+      'seller.password': 0,
+    },
   });
 
-  if (!listing) {
+  const result = await Listing.aggregate(pipeline);
+
+  if (result.length === 0) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
   }
-  return listing;
+
+  return result[0];
 };
 
 // Update Listing
