@@ -70,21 +70,73 @@ const getCommentsForPost = async (
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
 
-  const commentQuery = new QueryBuilder(
-    Comment.find({ postId, parentId: null }).populate({
-      path: 'user',
-      select: 'fullName email avatar',
-    }),
-    // @ts-ignore
-    query,
-  )
-    .filter()
-    .sort()
-    .paginate()
-    .select();
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const sort = (query.sort as string) || '-createdAt';
 
-  const result = await commentQuery.build();
-  const meta = await commentQuery.getMeta();
+  const pipeline: any[] = [
+    {
+      $match: {
+        postId: new Types.ObjectId(postId),
+        parentId: null,
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'parentId',
+        as: 'replies',
+      },
+    },
+    {
+      $addFields: {
+        replyCount: { $size: '$replies' },
+      },
+    },
+    {
+      $project: {
+        replies: 0,
+        'user.password': 0,
+      },
+    },
+  ];
+
+  const sortStage: Record<string, any> = {};
+  if (sort) {
+    const [field, order] = sort.startsWith('-')
+      ? [sort.slice(1), -1]
+      : [sort, 1];
+    sortStage[field] = order;
+    pipeline.push({ $sort: sortStage });
+  }
+
+  pipeline.push({ $skip: (page - 1) * limit });
+  pipeline.push({ $limit: limit });
+
+  const result = await Comment.aggregate(pipeline);
+
+  const total = await Comment.countDocuments({
+    postId,
+    parentId: null,
+  });
+  const meta = {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 
   return {
     meta,
@@ -147,30 +199,72 @@ const getCommentReplies = async (
     throw new AppError(StatusCodes.NOT_FOUND, 'Parent comment not found');
   }
 
-  const replyQuery = new QueryBuilder(
-    Comment.find({ parentId: commentId }).populate([
-      {
-        path: 'user',
-        select: 'fullName email avatar',
-      },
-      {
-        path: 'parentComment',
-        populate: {
-          path: 'user',
-          select: 'fullName email avatar',
-        },
-      },
-    ]),
-    // @ts-ignore
-    query,
-  )
-    .filter()
-    .sort()
-    .paginate()
-    .select();
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const sort = (query.sort as string) || '-createdAt';
 
-  const result = await replyQuery.build();
-  const meta = await replyQuery.getMeta();
+  const pipeline: any[] = [
+    {
+      $match: {
+        parentId: new Types.ObjectId(commentId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'parentId',
+        as: 'replies',
+      },
+    },
+    {
+      $addFields: {
+        replyCount: { $size: '$replies' },
+      },
+    },
+    {
+      $project: {
+        replies: 0,
+        'user.password': 0,
+      },
+    },
+  ];
+
+  const sortStage: Record<string, any> = {};
+  if (sort) {
+    const [field, order] = sort.startsWith('-')
+      ? [sort.slice(1), -1]
+      : [sort, 1];
+    sortStage[field] = order;
+    pipeline.push({ $sort: sortStage });
+  }
+
+  pipeline.push({ $skip: (page - 1) * limit });
+  pipeline.push({ $limit: limit });
+
+  const result = await Comment.aggregate(pipeline);
+
+  const total = await Comment.countDocuments({
+    parentId: commentId,
+  });
+
+  const meta = {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 
   return {
     meta,

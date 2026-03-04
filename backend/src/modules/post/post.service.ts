@@ -84,7 +84,7 @@ const getAllPostsService = async (
   if (Object.keys(filter).length > 0) {
     pipeline.push({ $match: filter });
   }
-  
+
   // Join with users
   pipeline.push({
     $lookup: {
@@ -100,8 +100,28 @@ const getAllPostsService = async (
     $unwind: '$user',
   });
 
+  // Join with likes to count
+  pipeline.push({
+    $lookup: {
+      from: 'likes',
+      localField: '_id',
+      foreignField: 'postId',
+      as: 'likes',
+    },
+  });
+
+  // Join with comments to count
+  pipeline.push({
+    $lookup: {
+      from: 'comments',
+      localField: '_id',
+      foreignField: 'postId',
+      as: 'comments',
+    },
+  });
+
   if (user) {
-    // Join with likes
+    // Join with user's like
     pipeline.push({
       $lookup: {
         from: 'likes',
@@ -123,16 +143,20 @@ const getAllPostsService = async (
         as: 'userLike',
       },
     });
-    // Add isLiked field
+    // Add isLiked, likeCount, commentCount fields
     pipeline.push({
       $addFields: {
         isLiked: { $gt: [{ $size: '$userLike' }, 0] },
+        likeCount: { $size: '$likes' },
+        commentCount: { $size: '$comments' },
       },
     });
   } else {
     pipeline.push({
       $addFields: {
         isLiked: false,
+        likeCount: { $size: '$likes' },
+        commentCount: { $size: '$comments' },
       },
     });
   }
@@ -155,6 +179,8 @@ const getAllPostsService = async (
   pipeline.push({
     $project: {
       userLike: 0,
+      likes: 0,
+      comments: 0,
       'user.password': 0,
       userId: 0,
     },
@@ -226,6 +252,22 @@ const getSinglePostService = async (id: string, user?: JwtPayload) => {
     {
       $unwind: '$user',
     },
+    {
+      $lookup: {
+        from: 'likes',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'likes',
+      },
+    },
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'comments',
+      },
+    },
   ];
 
   if (user) {
@@ -251,12 +293,16 @@ const getSinglePostService = async (id: string, user?: JwtPayload) => {
     pipeline.push({
       $addFields: {
         isLiked: { $gt: [{ $size: '$userLike' }, 0] },
+        likeCount: { $size: '$likes' },
+        commentCount: { $size: '$comments' },
       },
     });
   } else {
     pipeline.push({
       $addFields: {
         isLiked: false,
+        likeCount: { $size: '$likes' },
+        commentCount: { $size: '$comments' },
       },
     });
   }
@@ -264,6 +310,8 @@ const getSinglePostService = async (id: string, user?: JwtPayload) => {
   pipeline.push({
     $project: {
       userLike: 0,
+      likes: 0,
+      comments: 0,
       'user.password': 0,
       userId: 0,
     },
