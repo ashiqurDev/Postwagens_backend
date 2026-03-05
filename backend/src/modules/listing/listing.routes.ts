@@ -20,6 +20,8 @@ router.post(
 );
 
 router.get('/my-listings', checkAuth(...Object.values(Role)), listingControllers.getMyListings);
+router.get('/user/:userId', checkAuth(...Object.values(Role)), listingControllers.getListingsByUserId);
+
 
 router.get('/', checkAuth(...Object.values(Role)), listingControllers.getAllListings);
 

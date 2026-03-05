@@ -29,6 +29,12 @@ router.get(
   postControllers.getMyPosts,
 );
 
+router.get(
+  '/user/:userId',
+  checkAuth(...Object.values(Role)),
+  postControllers.getPostsByUserId,
+);
+
 router.use('/:id', LikeRoutes);
 router.use('/:id', PostCommentRoutes);
 

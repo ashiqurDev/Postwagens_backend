@@ -95,6 +95,19 @@ const updateListing = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get Listings By User Id
+const getListingsByUserId = CatchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const result = await listingServices.getListingsByUserIdService(userId);
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Listings fetched successfully!',
+    data: result,
+  });
+});
+
 // Delete Listing
 const deleteListing = CatchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -115,4 +128,5 @@ export const listingControllers = {
   getSingleListing,
   updateListing,
   deleteListing,
+  getListingsByUserId,
 };

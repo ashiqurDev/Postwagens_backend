@@ -91,6 +91,19 @@ const updatePost = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get Posts By User Id
+const getPostsByUserId = CatchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const result = await postServices.getPostsByUserIdService(userId);
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Posts fetched successfully!',
+    data: result,
+  });
+});
+
 // Delete Post
 const deletePost = CatchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -111,4 +124,5 @@ export const postControllers = {
   getSinglePost,
   updatePost,
   deletePost,
+  getPostsByUserId,
 };

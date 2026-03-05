@@ -48,6 +48,15 @@ const getMyListingsService = async (user: JwtPayload) => {
   return listings;
 };
 
+// Get Listings By User Id
+const getListingsByUserIdService = async (userId: string) => {
+  const listings = await Listing.find({ sellerId: userId }).populate({
+    path: 'seller',
+    select: 'fullName email avatar',
+  });
+  return listings;
+};
+
 // Get All Listings
 const getAllListingsService = async (
   query: Record<string, any>,
@@ -338,4 +347,5 @@ export const listingServices = {
   getSingleListingService,
   updateListingService,
   deleteListingService,
+  getListingsByUserIdService,
 };

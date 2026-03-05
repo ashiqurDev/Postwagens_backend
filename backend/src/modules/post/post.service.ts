@@ -51,6 +51,15 @@ const getMyPostsService = async (user: JwtPayload) => {
   return posts;
 };
 
+// Get Posts By User Id
+const getPostsByUserIdService = async (userId: string) => {
+  const posts = await Post.find({ userId: userId }).populate(
+    'userId',
+    'fullName email',
+  );
+  return posts;
+};
+
 
 // Get All Posts
 const getAllPostsService = async (
@@ -413,4 +422,5 @@ export const postServices = {
   getSinglePostService,
   updatePostService,
   deletePostService,
+  getPostsByUserIdService,
 };
