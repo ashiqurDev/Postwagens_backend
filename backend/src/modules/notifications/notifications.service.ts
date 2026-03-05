@@ -3,47 +3,28 @@ import { INotification } from './notifications.interface';
 import { Notification } from './notifications.model';
 import User from '../users/user.model';
 import fcm  from '../../config/firebase.config';
-
-const getNotificationMessage = (notification: INotification) => {
-    let title = 'New Notification';
-    let body = 'You have a new notification';
-
-    switch (notification.type) {
-        case 'like':
-            title = 'New Like';
-            body = 'Someone liked your post';
-            break;
-        case 'comment':
-            title = 'New Comment';
-            body = 'Someone commented on your post';
-            break;
-        case 'follow':
-            title = 'New Follower';
-            body = 'Someone started following you';
-            break;
-        // Add more cases for other notification types
-    }
-
-    return { title, body };
-}
+import { NotificationHelper } from './notification.helper';
 
 
 const createNotification = async (payload: INotification) => {
   const notification = await Notification.create(payload);
+  const message = await NotificationHelper.generateNotificationMessage(notification);
 
   if (notification.userId) {
     const userId = notification.userId.toString();
     if (isUserOnline(userId)) {
       const io = getSocketIo();
-      io.to(userId).emit('new_notification', notification);
+      io.to(userId).emit('new_notification', {
+        ...notification.toObject(),
+        message,
+      });
     } else {
       const user = await User.findById(userId);
       if (user && user.fcmToken) {
-        const { title, body } = getNotificationMessage(notification);
-        const message = {
+        const fcmMessage = {
           notification: {
-            title,
-            body,
+            title: 'New Notification',
+            body: message,
           },
           token: user.fcmToken,
           data: {
@@ -53,7 +34,7 @@ const createNotification = async (payload: INotification) => {
         
         try {
           // @ts-ignore
-          await fcm.send(message);
+          await fcm.send(fcmMessage);
         } catch (error) {
           console.error('Error sending FCM message:', error);
         }
@@ -65,7 +46,17 @@ const createNotification = async (payload: INotification) => {
 };
 
 const getNotificationsForUser = async (userId: string) => {
-  return await Notification.find({ userId }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({ userId }).sort({ createdAt: -1 }).lean();
+  const notificationsWithMessages = await Promise.all(
+    notifications.map(async (notification) => {
+      const message = await NotificationHelper.generateNotificationMessage(notification);
+      return {
+        ...notification,
+        message,
+      };
+    }),
+  );
+  return notificationsWithMessages;
 };
 
 const markAsRead = async (notificationId: string) => {
