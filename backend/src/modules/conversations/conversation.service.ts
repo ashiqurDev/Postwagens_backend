@@ -7,52 +7,35 @@ import { Message } from './message.model';
 import mongoose from 'mongoose';
 import Listing from '../listing/listing.model';
 
-const createConversation = async (
-  participantAId: string,
+const sendMessage = async (
+  senderId: string,
   participantBId: string,
+  text?: string,
+  listingId?: string,
+  file?: Express.Multer.File,
 ) => {
-  // Check if a conversation already exists between the two users
-  const existingConversation = await Conversation.findOne({
+  let conversation = await Conversation.findOne({
     $or: [
-      { participantAId, participantBId },
-      { participantAId: participantBId, participantBId: participantAId },
+      { participantAId: senderId, participantBId: participantBId },
+      { participantAId: participantBId, participantBId: senderId },
     ],
   });
 
-  if (existingConversation) {
-    return existingConversation;
+  if (!conversation) {
+    conversation = await Conversation.create({
+      participantAId: senderId,
+      participantBId: participantBId,
+    });
   }
 
-  const conversation = await Conversation.create({
-    participantAId,
-    participantBId,
-  });
-  return conversation;
-};
-
-const sendMessage = async (
-  conversationId: string,
-  senderId: string,
-  text?: string,
-  file?: Express.Multer.File,
-) => {
   if (!text && !file) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Message text or media is required');
   }
-  const conversation = await Conversation.findById(conversationId);
 
-  if (!conversation) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Conversation not found');
-  }
-
-  if (
-    conversation.participantAId.toString() !== senderId &&
-    conversation.participantBId.toString() !== senderId
-  ) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      'You are not a participant in this conversation',
-    );
+  if (listingId) {
+    await Listing.findByIdAndUpdate(listingId, {
+      $inc: { inquiryCount: 1 },
+    });
   }
 
   let mediaUrl: string | undefined;
@@ -63,10 +46,11 @@ const sendMessage = async (
 
 
   let message = await Message.create({
-    conversationId,
+    conversationId: conversation._id,
     senderId,
     text,
     mediaUrl,
+    listing: listingId,
   });
 
   message = await message.populate('senderId');
@@ -86,8 +70,23 @@ const sendMessage = async (
 const getConversationsForUser = async (userId: string) => {
     const conversations = await Conversation.find({
         $or: [{ participantAId: userId }, { participantBId: userId }],
-    }).populate('participantAId participantBId');
-    return conversations;
+    }).populate('participantAId participantBId').lean();
+
+    const conversationsWithUnreadStatus = await Promise.all(
+        conversations.map(async (conversation) => {
+            const unreadMessagesCount = await Message.countDocuments({
+                conversationId: conversation._id,
+                senderId: { $ne: userId },
+                isRead: false,
+            });
+            return {
+                ...conversation,
+                hasUnreadMessages: unreadMessagesCount > 0,
+            };
+        }),
+    );
+
+    return conversationsWithUnreadStatus;
 };
 
 const getMessagesForConversation = async (conversationId: string, userId: string) => {
@@ -129,61 +128,16 @@ const markMessagesAsRead = async (conversationId: string, userId: string) => {
     }
 
     await Message.updateMany(
-        { conversationId, senderId: { $ne: userId }, readAt: { $exists: false } },
-        { readAt: new Date() },
+        { conversationId, senderId: { $ne: userId }, isRead: false },
+        { isRead: true },
     );
 
     return null;
 };
 
-const messageSeller = async (listingId: string, senderId: string, text: string) => {
-  const listing = await Listing.findByIdAndUpdate(listingId, {
-    $inc: { inquiryCount: 1 },
-  });
-
-  if (!listing) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
-  }
-
-  const sellerId = listing.sellerId.toString();
-
-  if (sellerId === senderId) {
-    throw new AppError(StatusCodes.BAD_REQUEST, 'You cannot message yourself');
-  }
-
-  let conversation = await Conversation.findOne({
-    $or: [
-      { participantAId: sellerId, participantBId: senderId },
-      { participantAId: senderId, participantBId: sellerId },
-    ],
-  });
-
-  if (!conversation) {
-    conversation = await Conversation.create({
-      participantAId: senderId,
-      participantBId: sellerId,
-    });
-  }
-
-  const message = await Message.create({
-    conversationId: conversation._id,
-    senderId,
-    text,
-  });
-
-  const io = getSocketIo();
-  io.to(sellerId).emit('newMessage', message);
-
-  return message;
-};
-
-
-
 export const ConversationService = {
-  createConversation,
   sendMessage,
   getConversationsForUser,
   getMessagesForConversation,
   markMessagesAsRead,
-  messageSeller
 };

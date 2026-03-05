@@ -13,6 +13,10 @@ const messageSchema = new Schema<IMessage>(
       ref: 'user',
       required: true,
     },
+    listing: {
+      type: Schema.Types.ObjectId,
+      ref: 'listing',
+    },
     text: {
       type: String,
     },
@@ -23,8 +27,9 @@ const messageSchema = new Schema<IMessage>(
       type: Date,
       default: Date.now,
     },
-    readAt: {
-      type: Date,
+    isRead: {
+      type: Boolean,
+      default: false,
     },
   },
   {

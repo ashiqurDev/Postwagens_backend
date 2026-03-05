@@ -6,12 +6,6 @@ import { multerUpload } from '../../config/multer.config';
 
 const router = express.Router();
 
-router.post(
-  '/',
-  checkAuth(...Object.values(Role)),
-  ConversationController.createConversation,
-);
-
 router.get(
   '/',
   checkAuth(...Object.values(Role)),
@@ -25,7 +19,7 @@ router.get(
 );
 
 router.post(
-  '/:conversationId/messages',
+  '/messages',
   checkAuth(...Object.values(Role)),
   multerUpload.single('media'),
   ConversationController.sendMessage,
@@ -37,10 +31,5 @@ router.patch(
   ConversationController.markMessagesAsRead,
 );
 
-router.post(
-  '/:listingId/sendMessage',
-  checkAuth(...Object.values(Role)),
-  ConversationController.messageSeller
-);
 
 export const ConversationRoutes = router;
