@@ -30,7 +30,6 @@ const postSchema = new Schema<TPost>(
   },
 );
 
-postSchema.index({ text: 'text' });
 
 const Post = model<TPost>('Post', postSchema);
 

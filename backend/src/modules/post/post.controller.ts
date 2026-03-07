@@ -94,7 +94,7 @@ const updatePost = CatchAsync(async (req: Request, res: Response) => {
 // Get Posts By User Id
 const getPostsByUserId = CatchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const result = await postServices.getPostsByUserIdService(userId);
+  const result = await postServices.getPostsByUserIdService(userId as string);
 
   SendResponse(res, {
     success: true,

@@ -73,11 +73,29 @@ const getAllPostsService = async (
 
   const pipeline: any[] = [];
 
+  // Join with users
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'userId',
+      foreignField: '_id',
+      as: 'user',
+    },
+  });
+
+  // Deconstruct user array
+  pipeline.push({
+    $unwind: '$user',
+  });
+
   // Text search
   if (searchTerm) {
     pipeline.push({
       $match: {
-        $text: { $search: searchTerm },
+        $or: [
+          { text: { $regex: searchTerm, $options: 'i' } },
+          { 'user.fullName': { $regex: searchTerm, $options: 'i' } },
+        ],
       },
     });
   }
@@ -93,21 +111,6 @@ const getAllPostsService = async (
   if (Object.keys(filter).length > 0) {
     pipeline.push({ $match: filter });
   }
-
-  // Join with users
-  pipeline.push({
-    $lookup: {
-      from: 'users',
-      localField: 'userId',
-      foreignField: '_id',
-      as: 'user',
-    },
-  });
-
-  // Deconstruct user array
-  pipeline.push({
-    $unwind: '$user',
-  });
 
   // Join with likes to count
   pipeline.push({
