@@ -98,7 +98,9 @@ const updateListing = CatchAsync(async (req: Request, res: Response) => {
 // Get Listings By User Id
 const getListingsByUserId = CatchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const result = await listingServices.getListingsByUserIdService(userId);
+  const result = await listingServices.getListingsByUserIdService(
+    userId as string,
+  );
 
   SendResponse(res, {
     success: true,
@@ -121,6 +123,23 @@ const deleteListing = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Delete Listing Media
+const deleteListingMedia = CatchAsync(async (req: Request, res: Response) => {
+  const { listingId, mediaUrl } = req.query;
+  const result = await listingServices.deleteListingMediaService(
+    listingId as string,
+    mediaUrl as string,
+    req.user as JwtPayload,
+  );
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Listing media deleted successfully!',
+    data: result,
+  });
+});
+
 export const listingControllers = {
   createListing,
   getMyListings,
@@ -129,4 +148,5 @@ export const listingControllers = {
   updateListing,
   deleteListing,
   getListingsByUserId,
+  deleteListingMedia,
 };

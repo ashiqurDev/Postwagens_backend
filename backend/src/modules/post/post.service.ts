@@ -358,35 +358,31 @@ const updatePostService = async (
     );
   }
 
+  // Update text fields from payload
+  if (payload.text) {
+    post.text = payload.text;
+  }
+
   if (files && files.length > 0) {
-    // Delete old images from Cloudinary
-    if (post.imagesAndVideos && post.imagesAndVideos.length > 0) {
-      for (const imageUrl of post.imagesAndVideos) {
-        await deleteImageFromCLoudinary(imageUrl.url);
-      }
+    if (!post.imagesAndVideos) {
+      post.imagesAndVideos = [];
     }
 
-    // Upload new images
-    const imagesAndVideos: IImageAndVideo[] = [];
     for (const file of files) {
       const uploadedFile = await uploadBufferToCloudinary(
         file.buffer,
         file.originalname,
       );
       if (uploadedFile) {
-        imagesAndVideos.push({
+        post.imagesAndVideos.push({
           type: file.mimetype.startsWith('image') ? 'image' : 'video',
           url: uploadedFile.secure_url,
         });
       }
     }
-    payload.imagesAndVideos = imagesAndVideos;
   }
 
-  const updatedPost = await Post.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedPost = await post.save();
 
   return updatedPost;
 };
@@ -418,6 +414,42 @@ const deletePostService = async (id: string, user: JwtPayload) => {
   return null;
 };
 
+// delete post media service
+const deletePostMediaService = async (
+  postId: string,
+  mediaUrl: string,
+  user: JwtPayload,
+) => {
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  if (post.userId.toString() !== user.userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to delete media from this post',
+    );
+  }
+
+  // Delete image from Cloudinary
+  await deleteImageFromCLoudinary(mediaUrl);
+
+  // Remove media from post
+  const updatedImagesAndVideos = (post.imagesAndVideos || []).filter(
+    (media) => decodeURIComponent(media.url) !== mediaUrl,
+  );
+
+  const updatedPost = await Post.findByIdAndUpdate(
+    postId,
+    { imagesAndVideos: updatedImagesAndVideos },
+    { new: true, runValidators: true },
+  );
+
+  return updatedPost;
+};
+
 export const postServices = {
   createPostService,
   getMyPostsService,
@@ -426,4 +458,5 @@ export const postServices = {
   updatePostService,
   deletePostService,
   getPostsByUserIdService,
+  deletePostMediaService,
 };

@@ -265,7 +265,7 @@ const updateListingService = async (
   id: string,
   payload: Partial<IListing>,
   user: JwtPayload,
-  files: Express.Multer.File[]
+  files: Express.Multer.File[],
 ) => {
   const listing = await Listing.findById(id);
 
@@ -276,39 +276,33 @@ const updateListingService = async (
   if (listing.sellerId.toString() !== user.userId) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
-      'You are not authorized to update this listing'
+      'You are not authorized to update this listing',
     );
   }
 
+  // Update fields from payload
+  Object.assign(listing, payload);
+
   if (files && files.length > 0) {
-    // Delete old images from Cloudinary
-    if (listing.imagesAndVideos && listing.imagesAndVideos.length > 0) {
-      for (const image of listing.imagesAndVideos) {
-        await deleteImageFromCLoudinary(image.url);
-      }
+    if (!listing.imagesAndVideos) {
+      listing.imagesAndVideos = [];
     }
 
-    // Upload new images
-    const newImagesAndVideos: IImageAndVideo[] = [];
     for (const file of files) {
       const uploadedFile = await uploadBufferToCloudinary(
         file.buffer,
-        file.originalname
+        file.originalname,
       );
       if (uploadedFile) {
-        newImagesAndVideos.push({
+        listing.imagesAndVideos.push({
           type: file.mimetype.startsWith('image') ? 'image' : 'video',
           url: uploadedFile.secure_url,
         });
       }
     }
-    payload.imagesAndVideos = newImagesAndVideos;
   }
 
-  const updatedListing = await Listing.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedListing = await listing.save();
 
   return updatedListing;
 };
@@ -324,10 +318,10 @@ const deleteListingService = async (id: string, user: JwtPayload) => {
   if (listing.sellerId.toString() !== user.userId) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
-      'You are not authorized to delete this listing'
+      'You are not authorized to delete this listing',
     );
   }
-  
+
   // Delete images from Cloudinary before deleting the listing
   if (listing.imagesAndVideos && listing.imagesAndVideos.length > 0) {
     for (const image of listing.imagesAndVideos) {
@@ -340,6 +334,42 @@ const deleteListingService = async (id: string, user: JwtPayload) => {
   return null;
 };
 
+// delete listing media service
+const deleteListingMediaService = async (
+  listingId: string,
+  mediaUrl: string,
+  user: JwtPayload,
+) => {
+  const listing = await Listing.findById(listingId);
+
+  if (!listing) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
+  }
+
+  if (listing.sellerId.toString() !== user.userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to delete media from this listing',
+    );
+  }
+
+  // Delete image from Cloudinary
+  await deleteImageFromCLoudinary(mediaUrl);
+
+  // Remove media from post
+  const updatedImagesAndVideos = (listing.imagesAndVideos || []).filter(
+    (media) => decodeURIComponent(media.url) !== mediaUrl,
+  );
+
+  const updatedListing = await Listing.findByIdAndUpdate(
+    listingId,
+    { imagesAndVideos: updatedImagesAndVideos },
+    { new: true, runValidators: true },
+  );
+
+  return updatedListing;
+};
+
 export const listingServices = {
   createListingService,
   getMyListingsService,
@@ -348,4 +378,5 @@ export const listingServices = {
   updateListingService,
   deleteListingService,
   getListingsByUserIdService,
+  deleteListingMediaService,
 };

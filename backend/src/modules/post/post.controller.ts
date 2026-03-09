@@ -117,6 +117,23 @@ const deletePost = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Delete Post Media
+const deletePostMedia = CatchAsync(async (req: Request, res: Response) => {
+  const { postId, mediaUrl } = req.query;
+  const result = await postServices.deletePostMediaService(
+    postId as string,
+    mediaUrl as string,
+    req.user as JwtPayload,
+  );
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post media deleted successfully!',
+    data: result,
+  });
+});
+
 export const postControllers = {
   createPost,
   getMyPosts,
@@ -125,4 +142,5 @@ export const postControllers = {
   updatePost,
   deletePost,
   getPostsByUserId,
+  deletePostMedia,
 };

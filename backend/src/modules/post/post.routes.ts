@@ -2,6 +2,7 @@ import express from 'express';
 import { validateRequest } from '../../middlewares/validateRequest';
 import {
   createPostZodSchema,
+  deletePostMediaZodSchema,
   updatePostZodSchema,
 } from './post.validation';
 import { postControllers } from './post.controller';
@@ -21,7 +22,7 @@ router.post(
   postControllers.createPost,
 );
 
-router.get('/',  checkAuth(...Object.values(Role)), postControllers.getAllPosts);
+router.get('/', checkAuth(...Object.values(Role)), postControllers.getAllPosts);
 
 router.get(
   '/my-posts',
@@ -35,10 +36,21 @@ router.get(
   postControllers.getPostsByUserId,
 );
 
+router.delete(
+  '/media',
+  checkAuth(...Object.values(Role)),
+  validateRequest(deletePostMediaZodSchema, 'query'),
+  postControllers.deletePostMedia,
+);
+
 router.use('/:id', LikeRoutes);
 router.use('/:id', PostCommentRoutes);
 
-router.get('/:id', checkAuth(...Object.values(Role)),postControllers.getSinglePost);
+router.get(
+  '/:id',
+  checkAuth(...Object.values(Role)),
+  postControllers.getSinglePost,
+);
 
 router.patch(
   '/:id',

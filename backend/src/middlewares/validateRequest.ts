@@ -2,14 +2,29 @@ import { NextFunction, Request, Response } from 'express';
 import { ZodObject } from 'zod';
 
 export const validateRequest =
-  (ZodSchema: ZodObject) =>
+  (ZodSchema: ZodObject, part: 'body' | 'query' | 'params' = 'body') =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (req.body?.data) {
-        req.body = JSON.parse(req.body.data);
+      let dataToValidate: any;
+
+      if (part === 'body') {
+        let requestBody = req.body;
+        if (requestBody?.data) {
+          requestBody = JSON.parse(requestBody.data);
+        }
+        dataToValidate = requestBody || {};
+      } else if (part === 'query') {
+        dataToValidate = req.query || {};
+      } else {
+        dataToValidate = req.params || {};
       }
 
-      req.body = await ZodSchema.parseAsync(req.body);
+      const validatedData = await ZodSchema.parseAsync(dataToValidate);
+
+      if (part === 'body') {
+        req.body = validatedData;
+      }
+
       next();
     } catch (error) {
       next(error);

@@ -2,6 +2,7 @@ import express from 'express';
 import { validateRequest } from '../../middlewares/validateRequest';
 import {
   createListingZodSchema,
+  deleteListingMediaZodSchema,
   updateListingZodSchema,
 } from './listing.validate';
 import { listingControllers } from './listing.controller';
@@ -16,29 +17,51 @@ router.post(
   checkAuth(...Object.values(Role)),
   multerUpload.array('imagesAndVideos'),
   validateRequest(createListingZodSchema),
-  listingControllers.createListing
+  listingControllers.createListing,
 );
 
-router.get('/my-listings', checkAuth(...Object.values(Role)), listingControllers.getMyListings);
-router.get('/user/:userId', checkAuth(...Object.values(Role)), listingControllers.getListingsByUserId);
+router.get(
+  '/my-listings',
+  checkAuth(...Object.values(Role)),
+  listingControllers.getMyListings,
+);
+router.get(
+  '/user/:userId',
+  checkAuth(...Object.values(Role)),
+  listingControllers.getListingsByUserId,
+);
 
+router.get(
+  '/',
+  checkAuth(...Object.values(Role)),
+  listingControllers.getAllListings,
+);
 
-router.get('/', checkAuth(...Object.values(Role)), listingControllers.getAllListings);
+router.delete(
+  '/media',
+  checkAuth(...Object.values(Role)),
+  validateRequest(deleteListingMediaZodSchema, 'query'),
+  listingControllers.deleteListingMedia,
+);
 
-router.get('/:id',checkAuth(...Object.values(Role)), listingControllers.getSingleListing);
+router.get(
+  '/:id',
+  checkAuth(...Object.values(Role)),
+  listingControllers.getSingleListing,
+);
 
 router.patch(
   '/:id',
   checkAuth(...Object.values(Role)),
   multerUpload.array('imagesAndVideos'),
   validateRequest(updateListingZodSchema),
-  listingControllers.updateListing
+  listingControllers.updateListing,
 );
 
 router.delete(
   '/:id',
   checkAuth(...Object.values(Role)),
-  listingControllers.deleteListing
+  listingControllers.deleteListing,
 );
 
 export const listingRoutes = router;
