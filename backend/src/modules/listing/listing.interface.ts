@@ -1,10 +1,13 @@
 import { Types } from 'mongoose';
 
 export enum ListingCategory {
-  VWCars = 'VW cars',
-  OffRoadVehicles = 'Off-road vehicles',
-  VehicleParts = 'Vehicle parts',
+  Cars = 'cars',
+  OffRoad = 'offRoad',
+  Parts = 'parts',
+  Accessories = 'accessories',
+  Services = 'services',
 }
+
 
 export interface IImageAndVideo {
   type: 'image' | 'video';
