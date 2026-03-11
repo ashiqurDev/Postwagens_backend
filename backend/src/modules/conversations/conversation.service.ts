@@ -106,38 +106,19 @@ const getMessagesForConversation = async (conversationId: string, userId: string
         );
     }
 
-    const messages = await Message.find({ conversationId }).sort({ sentAt: 1 });
-    return messages;
-};
-
-const markMessagesAsRead = async (conversationId: string, userId: string) => {
-    const conversation = await Conversation.findById(conversationId);
-
-    if (!conversation) {
-        throw new AppError(StatusCodes.NOT_FOUND, 'Conversation not found');
-    }
-
-    if (
-        conversation.participantAId.toString() !== userId &&
-        conversation.participantBId.toString() !== userId
-    ) {
-        throw new AppError(
-            StatusCodes.FORBIDDEN,
-            'You are not a participant in this conversation',
-        );
-    }
-
+    // Mark messages as read for the current user.
+    // This will only update messages where the sender is not the current user.
     await Message.updateMany(
         { conversationId, senderId: { $ne: userId }, isRead: false },
         { isRead: true },
     );
 
-    return null;
+    const messages = await Message.find({ conversationId }).sort({ sentAt: 1 });
+    return messages;
 };
 
 export const ConversationService = {
   sendMessage,
   getConversationsForUser,
   getMessagesForConversation,
-  markMessagesAsRead,
 };

@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema<IUser>(
     fullName: { type: String },
     bio: { type: String , default: null},
     email: { type: String, required: true, unique: true, lowercase: true },
-    avatar: { type: String },
+    avatar: { type: String, default: null },
     password: { type: String, select: false },
     fcmToken: { type: String },
     verifiedBadge: { type: Schema.Types.ObjectId, ref: 'VerifiedBadgePrice' },

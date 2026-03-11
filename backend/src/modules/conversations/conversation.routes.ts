@@ -25,11 +25,4 @@ router.post(
   ConversationController.sendMessage,
 );
 
-router.patch(
-  '/:conversationId/read',
-  checkAuth(...Object.values(Role)),
-  ConversationController.markMessagesAsRead,
-);
-
-
 export const ConversationRoutes = router;
