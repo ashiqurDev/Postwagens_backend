@@ -27,7 +27,8 @@ const sendMessage = CatchAsync(async (req, res) => {
 const getConversationsForUser = CatchAsync(async (req, res) => {
   // @ts-ignore
     const userId = req.user.userId;
-    const result = await ConversationService.getConversationsForUser(userId);
+    const { search } = req.query;
+    const result = await ConversationService.getConversationsForUser(userId, search as string);
     SendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -50,8 +51,24 @@ const getMessagesForConversation = CatchAsync(async (req, res) => {
     });
 });
 
+const findOrCreateConversation = CatchAsync(async (req, res) => {
+    const { participantBId } = req.body;
+    // @ts-ignore
+    const participantAId = req.user.userId;
+
+    const result = await ConversationService.findOrCreateConversation(participantAId, participantBId);
+
+    SendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Conversation found or created successfully',
+        data: result,
+    });
+});
+
 export const ConversationController = {
     sendMessage,
     getConversationsForUser,
     getMessagesForConversation,
+    findOrCreateConversation,
 };

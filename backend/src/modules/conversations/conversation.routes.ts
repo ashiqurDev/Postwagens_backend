@@ -25,4 +25,10 @@ router.post(
   ConversationController.sendMessage,
 );
 
+router.post(
+    '/find-or-create',
+    checkAuth(...Object.values(Role)),
+    ConversationController.findOrCreateConversation,
+);
+
 export const ConversationRoutes = router;
