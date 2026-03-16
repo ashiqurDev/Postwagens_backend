@@ -41,8 +41,9 @@ const getMessagesForConversation = CatchAsync(async (req, res) => {
     const { conversationId } = req.params;
     // @ts-ignore
     const userId = req.user.userId;
+    const { page, limit } = req.query;
     // @ts-ignore
-    const result = await ConversationService.getMessagesForConversation(conversationId, userId);
+    const result = await ConversationService.getMessagesForConversation(conversationId, userId, { page: Number(page) || 1, limit: Number(limit) || 20 });
     SendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -55,8 +56,9 @@ const findOrCreateConversation = CatchAsync(async (req, res) => {
     const { participantBId } = req.body;
     // @ts-ignore
     const participantAId = req.user.userId;
+    const { page, limit } = req.query;
 
-    const result = await ConversationService.findOrCreateConversation(participantAId, participantBId);
+    const result = await ConversationService.findOrCreateConversation(participantAId, participantBId, { page: Number(page) || 1, limit: Number(limit) || 20 });
 
     SendResponse(res, {
         statusCode: StatusCodes.OK,

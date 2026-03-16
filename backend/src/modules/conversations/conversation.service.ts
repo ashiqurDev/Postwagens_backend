@@ -174,7 +174,10 @@ const getConversationsForUser = async (userId: string, searchTerm?: string) => {
     return conversationsWithDetails;
 };
 
-const getMessagesForConversation = async (conversationId: string, userId: string) => {
+const getMessagesForConversation = async (conversationId: string, userId: string, options: { page: number, limit: number }) => {
+    const { page, limit } = options;
+    const skip = (page - 1) * limit;
+
     const conversation = await Conversation.findById(conversationId)
         .populate('participantAId')
         .populate('participantBId');
@@ -200,11 +203,17 @@ const getMessagesForConversation = async (conversationId: string, userId: string
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId }).sort({ sentAt: -1 }).populate('senderId');
-    return { conversation, messages };
+    const messages = await Message.find({ conversationId }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId');
+    const totalMessages = await Message.countDocuments({ conversationId });
+    const totalPages = Math.ceil(totalMessages / limit);
+
+    return { conversation, messages, totalPages, currentPage: page };
 };
 
-const findOrCreateConversation = async (participantAId: string, participantBId: string) => {
+const findOrCreateConversation = async (participantAId: string, participantBId: string, options: { page: number, limit: number }) => {
+    const { page, limit } = options;
+    const skip = (page - 1) * limit;
+
     let conversation = await Conversation.findOne({
         $or: [
             { participantAId, participantBId },
@@ -235,9 +244,11 @@ const findOrCreateConversation = async (participantAId: string, participantBId: 
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: -1 }).populate('senderId');
+    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId');
+    const totalMessages = await Message.countDocuments({ conversationId: conversation._id });
+    const totalPages = Math.ceil(totalMessages / limit);
 
-    return { conversation, messages };
+    return { conversation, messages, totalPages, currentPage: page };
 };
 
 export const ConversationService = {
