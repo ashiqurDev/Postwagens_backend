@@ -45,6 +45,12 @@ router.delete(
 );
 
 router.get(
+  '/:id/analytics',
+  checkAuth(...Object.values(Role)),
+  listingControllers.getListingAnalytics,
+);
+
+router.get(
   '/:id',
   checkAuth(...Object.values(Role)),
   listingControllers.getSingleListing,
@@ -63,5 +69,8 @@ router.delete(
   checkAuth(...Object.values(Role)),
   listingControllers.deleteListing,
 );
+
+
+
 
 export const listingRoutes = router;

@@ -140,6 +140,19 @@ const deleteListingMedia = CatchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Get Listing Analytics
+const getListingAnalytics = CatchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await listingServices.getListingAnalyticsService(id as string);
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Listing analytics fetched successfully!',
+    data: result,
+  });
+});
+
 export const listingControllers = {
   createListing,
   getMyListings,
@@ -149,4 +162,5 @@ export const listingControllers = {
   deleteListing,
   getListingsByUserId,
   deleteListingMedia,
+  getListingAnalytics,
 };

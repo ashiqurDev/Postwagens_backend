@@ -370,6 +370,66 @@ const deleteListingMediaService = async (
   return updatedListing;
 };
 
+// get listing analytics service
+const getListingAnalyticsService = async (id: string) => {
+  const listing = await Listing.findById(id);
+
+  if (!listing) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Listing not found');
+  }
+
+  // engagement analytics for last 7 days, last 1 month
+  const today = new Date();
+  const oneWeekAgo = new Date(today);
+  oneWeekAgo.setDate(today.getDate() - 7);
+  const oneMonthAgo = new Date(today);
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+  // engagement analytics = view count + inquiry count for last 7 days, last 1 month, last 1 year
+  const engagementResult = await Listing.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $project: {
+        viewCount: 1,
+        inquiryCount: 1,
+        engagementLast7Days: {
+          $cond: [
+            { $gte: ['$createdAt', oneWeekAgo] },
+            { $add: ['$viewCount', '$inquiryCount'] },
+            0,
+          ],
+        },
+        engagementLast1Month: {
+          $cond: [
+            { $gte: ['$createdAt', oneMonthAgo] },
+            { $add: ['$viewCount', '$inquiryCount'] },
+            0,
+          ],
+        },
+        engagementLast1Year: {
+          $cond: [
+            { $gte: ['$createdAt', oneYearAgo] },
+            { $add: ['$viewCount', '$inquiryCount'] },
+            0,
+          ],
+        },
+      },
+    },
+  ]);
+
+
+
+
+  return {
+    ...engagementResult[0],
+  };
+};
+
 export const listingServices = {
   createListingService,
   getMyListingsService,
@@ -379,4 +439,5 @@ export const listingServices = {
   deleteListingService,
   getListingsByUserIdService,
   deleteListingMediaService,
+  getListingAnalyticsService,
 };

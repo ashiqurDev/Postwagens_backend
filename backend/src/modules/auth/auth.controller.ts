@@ -150,6 +150,22 @@ const appleCallback = CatchAsync(
   }
 );
 
+// GOOGLE TOKEN LOGIN
+const googleTokenLogin = CatchAsync(async (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (!token) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Google token is required');
+  }
+  const result = await authService.googleTokenLoginService(token);
+
+  SendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Login success!',
+    data: result,
+  });
+});
+
 export const authController = {
   credentialsLogin,
   getNeAccessToken,
@@ -161,4 +177,5 @@ export const authController = {
   googleLogin,
   appleLogin,
   appleCallback,
+  googleTokenLogin,
 };

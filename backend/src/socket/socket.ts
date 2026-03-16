@@ -19,7 +19,8 @@ export const initSocket = (server: http.Server) => {
     socket.on('join', userId => {
       socket.join(userId);
       onlineUsers.set(userId, socket.id);
-      socket.emit('onlineUsers', Array.from(onlineUsers.keys()));
+      io.emit('onlineUsers', Array.from(onlineUsers.keys()));
+      console.log(`User ${userId} joined with socket ID ${socket.id}`, onlineUsers.keys());
     });
 
     socket.on('disconnect', () => {
@@ -30,6 +31,7 @@ export const initSocket = (server: http.Server) => {
           break;
         }
       }
+      io.emit('onlineUsers', Array.from(onlineUsers.keys()));
     });
   });
 

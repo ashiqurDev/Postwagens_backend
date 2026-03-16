@@ -10,6 +10,9 @@ import { sendEmail } from '../../utils/sendMail';
 import { randomOTPGenerator } from '../../utils/randomOTPGenerator';
 import { redisClient } from '../../config/redis.config';
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(env.GOOGLE_OAUTH_ID);
 
 // GET NEW ACCESS TOKEN
 const getNewAccessTokenService = async (refreshToken: string) => {
@@ -202,11 +205,60 @@ const resetPasswordService = async (token: string, newPassword: string) => {
   return null;
 };
 
+const googleTokenLoginService = async (token: string) => {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: env.GOOGLE_OAUTH_ID,
+  });
+  const payload = ticket.getPayload();
+
+  if (!payload) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Google token');
+  }
+
+  const { email, name, picture } = payload;
+
+  console.log('Google token payload:', payload);
+
+  if (!email) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Email not found in Google token');
+  }
+
+  let user = await User.findOne({ email });
+
+  if (user) {
+    if (user.isActive === IsActive.BLOCKED || user.isActive === IsActive.INACTIVE) {
+      throw new AppError(StatusCodes.BAD_REQUEST, `User is ${user.isActive}`);
+    }
+  } else {
+
+    user = await User.create({
+      email,
+      fullName: name,
+      // @ts-ignore
+      profileImage: picture,
+      isVerified: true, // Users from Google are considered verified
+      auth: {
+        provider: 'google',
+        providerId: payload.sub,
+      }
+    });
+  }
+
+  const userTokens = await createUserTokens(user);
+
+  return {
+    user,
+    ...userTokens,
+  };
+};
+
 
 export const authService = {
   getNewAccessTokenService,
   changePasswordService,
   forgetPasswrodService,
   verifyOTPService,
-  resetPasswordService
+  resetPasswordService,
+  googleTokenLoginService,
 };

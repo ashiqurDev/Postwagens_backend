@@ -37,4 +37,6 @@ router.get('/apple/callback',
   passport.authenticate('apple', { failureRedirect: '/login' }),
  authController.appleCallback);
 
+ router.post('/google/login', authController.googleTokenLogin);
+
 export const authRouter = router;
