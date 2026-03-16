@@ -97,7 +97,7 @@ const getListingBoosts = async (listingId: string) => {
 };
 
 const getUserBoosts = async (userId: string) => {
-    const boosts = await Boost.find({ userId }).populate('listingId boostTypeId');
+    const boosts = await Boost.find({ userId }).populate('listingId boostTypeId userId');
     return boosts;
 };
 

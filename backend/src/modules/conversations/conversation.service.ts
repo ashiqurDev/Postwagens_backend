@@ -6,6 +6,8 @@ import { getSocketIo } from '../../socket/socket';
 import { Message } from './message.model';
 import mongoose from 'mongoose';
 import Listing from '../listing/listing.model';
+import { NotificationService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.interface';
 
 const sendMessage = async (
   senderId: string,
@@ -63,6 +65,15 @@ const sendMessage = async (
 
   io.to(recipientId).emit('newMessage', message);
 
+  await NotificationService.createNotification({
+    userId: new mongoose.Types.ObjectId(recipientId),
+    actorId: new mongoose.Types.ObjectId(senderId),
+    type: NotificationType.MESSAGE,
+    entity: {
+      userId: new mongoose.Types.ObjectId(senderId),
+    },
+    isRead: false,
+  });
 
   return message;
 };
@@ -189,7 +200,7 @@ const getMessagesForConversation = async (conversationId: string, userId: string
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId }).sort({ sentAt: 1 }).populate('senderId');
+    const messages = await Message.find({ conversationId }).sort({ sentAt: -1 }).populate('senderId');
     return { conversation, messages };
 };
 
@@ -224,7 +235,7 @@ const findOrCreateConversation = async (participantAId: string, participantBId: 
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: 1 }).populate('senderId');
+    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: -1 }).populate('senderId');
 
     return { conversation, messages };
 };

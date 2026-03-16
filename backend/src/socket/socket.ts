@@ -19,6 +19,7 @@ export const initSocket = (server: http.Server) => {
     socket.on('join', userId => {
       socket.join(userId);
       onlineUsers.set(userId, socket.id);
+      socket.emit('onlineUsers', Array.from(onlineUsers.keys()));
     });
 
     socket.on('disconnect', () => {
