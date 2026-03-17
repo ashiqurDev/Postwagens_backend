@@ -12,7 +12,6 @@ import env from '../../config/env';
 // import axios from 'axios';
 import { redisClient } from '../../config/redis.config';
 import { deleteImageFromCLoudinary } from '../../config/cloudinary.config';
-import { VerifiedBadgePrice } from '../verified_badge_prices/verified_badge_prices.model';
 import { Follow } from '../follow/follow.model';
 import Post from '../post/post.model';
 

@@ -30,6 +30,7 @@ export interface INotification {
     likeId?: Types.ObjectId;
     listingId?: Types.ObjectId;
     followId?: Types.ObjectId;
+    conversationId?: Types.ObjectId;
   };
   isRead: boolean;
   createdAt?: Date;

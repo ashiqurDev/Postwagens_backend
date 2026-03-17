@@ -8,40 +8,74 @@ import { NotificationHelper } from './notification.helper';
 
 const createNotification = async (payload: INotification) => {
   const notification = await Notification.create(payload);
-  const message = await NotificationHelper.generateNotificationMessage(notification);
 
-  if (notification.userId) {
-    const userId = notification.userId.toString();
-    if (isUserOnline(userId)) {
-      const io = getSocketIo();
-      io.to(userId).emit('new_notification', {
-        ...notification.toObject(),
-        message,
-      });
-    } else {
-      const user = await User.findById(userId);
-      if (user && user.fcmToken) {
-        const fcmMessage = {
-          notification: {
-            title: 'New Notification',
-            body: message,
-          },
-          token: user.fcmToken,
-          data: {
-            notification: JSON.stringify(notification),
-          }
-        };
-        
-        try {
-          // @ts-ignore
-          await fcm.send(fcmMessage);
-        } catch (error) {
-          console.error('Error sending FCM message:', error);
-        }
+  if (!notification.userId) {
+    return notification;
+  }
+
+  const userId = notification.userId.toString();
+
+  await notification.populate([
+    {
+      path: 'userId',
+      select: 'fullName avatar',
+    },
+    {
+      path: 'actorId',
+      select: 'fullName avatar',
+    },
+    {
+      path: 'entity.postId',
+    },
+    {
+      path: 'entity.commentId',
+    },
+    {
+      path: 'entity.likeId',
+    },
+    {
+      path: 'entity.listingId',
+    },
+    {
+      path: 'entity.followId',
+    },
+    {
+      path: 'entity.conversationId',
+    },
+  ]);
+
+  const message =
+    await NotificationHelper.generateNotificationMessage(notification);
+
+  if (isUserOnline(userId)) {
+    const io = getSocketIo();
+    io.to(userId).emit('new_notification', {
+      ...notification.toObject(),
+      message,
+    });
+  } else {
+    const user = await User.findById(userId);
+    if (user && user.fcmToken) {
+      const fcmMessage = {
+        notification: {
+          title: 'New Notification',
+          body: message,
+        },
+        token: user.fcmToken,
+        data: {
+          notification: JSON.stringify(notification),
+        },
+      };
+
+      try {
+        // @ts-ignore
+        await fcm.send(fcmMessage);
+      } catch (error) {
+        console.error('Error sending FCM message:', error);
       }
     }
   }
-  
+
   return notification;
 };
 
@@ -65,11 +99,11 @@ const getNotificationsForUser = async (
   const notifications = await Notification.find(findQuery)
     .populate({
       path: 'userId',
-      select: 'fullName profileImage',
+      select: 'fullName avatar',
     })
     .populate({
       path: 'actorId',
-      select: 'fullName profileImage',
+      select: 'fullName avatar',
     })
     .populate({
       path: 'entity.postId',
@@ -85,6 +119,9 @@ const getNotificationsForUser = async (
     })
     .populate({
       path: 'entity.followId',
+    })
+    .populate({
+      path: 'entity.conversationId',
     })
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)

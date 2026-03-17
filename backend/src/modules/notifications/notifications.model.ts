@@ -57,6 +57,10 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
         type: Schema.Types.ObjectId,
         ref: 'Follow',
       },
+      conversationId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Conversation',
+      },
     },
     isRead: {
       type: Boolean,

@@ -71,6 +71,7 @@ const sendMessage = async (
     type: NotificationType.MESSAGE,
     entity: {
       userId: new mongoose.Types.ObjectId(senderId),
+      conversationId: conversation._id,
     },
     isRead: false,
   });
