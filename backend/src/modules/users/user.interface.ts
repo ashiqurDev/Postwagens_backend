@@ -30,7 +30,7 @@ export interface IUser {
   avatar?: string;
   password?: string;
   fcmToken?: string;
-  verifiedBadge?: Types.ObjectId;
+  verifiedBadge?: boolean;
   verifiedBadgeExpiration?: Date;
   isVerified?: boolean;
   role: Role;

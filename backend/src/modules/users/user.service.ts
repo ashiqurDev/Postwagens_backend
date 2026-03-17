@@ -467,26 +467,20 @@ const verifyOTPService = async (phoneNumber: string, otp: string) => {
   return null;
 };
 
-const purchaseBadgeService = async (userId: string, badgeId: string) => {
+const purchaseBadgeService = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-  }
-
-  const badge = await VerifiedBadgePrice.findById(badgeId);
-  if (!badge) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Badge not found!');
   }
 
   // Here you would implement the payment logic.
   // For now, we simulate a successful payment.
 
   const expirationDate = new Date();
-  expirationDate.setDate(expirationDate.getDate() + badge.durationDays);
+  expirationDate.setFullYear(expirationDate.getFullYear() + 1);
 
-  user.verifiedBadge = badge._id;
+  user.verifiedBadge = true;
   user.verifiedBadgeExpiration = expirationDate;
-  user.isVerified = true;
 
   await user.save();
 

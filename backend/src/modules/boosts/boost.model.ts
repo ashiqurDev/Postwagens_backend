@@ -15,13 +15,12 @@ const boostSchema = new Schema<IBoost>(
     },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
-    boostTypeId: {
-      type: Schema.Types.ObjectId,
-      ref: 'BoostType',
-      required: true,
-    },
+    productId: { type: String, required: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    durationDays: { type: Number, required: true },
   },
-    {
+  {
     timestamps: { createdAt: true, updatedAt: false },
     toJSON: {
       virtuals: true,
@@ -29,12 +28,10 @@ const boostSchema = new Schema<IBoost>(
         // 🔁 rename populated fields
         (ret as any).user = ret.userId;
         (ret as any).listing = ret.listingId;
-        (ret as any).boostType = ret.boostTypeId;
 
         // ❌ remove raw ids
         delete (ret as any).userId;
         delete (ret as any).listingId;
-        delete (ret as any).boostTypeId;
 
         return ret;
       },

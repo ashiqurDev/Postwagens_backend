@@ -5,28 +5,6 @@ import { Role } from '../users/user.interface';
 
 const router = express.Router();
 
-// BoostType routes
-router.post(
-  '/types',
-  checkAuth(Role.ADMIN),
-  BoostController.createBoostType,
-);
-router.get('/types', BoostController.getAllBoostTypes);
-router.get(
-  '/types/:id',
-  BoostController.getBoostTypeById,
-);
-router.patch(
-  '/types/:id',
-  checkAuth(Role.ADMIN),
-  BoostController.updateBoostType,
-);
-router.delete(
-  '/types/:id',
-  checkAuth(Role.ADMIN),
-  BoostController.deleteBoostType,
-);
-
 // ListingBoost routes
 router.post(
   '/',

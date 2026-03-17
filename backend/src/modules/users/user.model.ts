@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema<IUser>(
     avatar: { type: String, default: null },
     password: { type: String, select: false },
     fcmToken: { type: String },
-    verifiedBadge: { type: Schema.Types.ObjectId, ref: 'VerifiedBadgePrice' },
+    verifiedBadge: { type: Boolean, default: false },
     verifiedBadgeExpiration: { type: Date },
     isVerified: { type: Boolean, default: false },
     isActive: {
