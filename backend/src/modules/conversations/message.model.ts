@@ -15,7 +15,7 @@ const messageSchema = new Schema<IMessage>(
     },
     listing: {
       type: Schema.Types.ObjectId,
-      ref: 'listing',
+      ref: 'Listing',
     },
     text: {
       type: String,

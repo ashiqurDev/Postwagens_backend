@@ -55,7 +55,7 @@ const sendMessage = async (
     listing: listingId,
   });
 
-  message = await message.populate('senderId');
+   message = await message.populate(['senderId', 'listing']);
 
   const io = getSocketIo();
   const recipientId =
@@ -162,7 +162,8 @@ const getConversationsForUser = async (userId: string, searchTerm?: string) => {
                 conversationId: conversation._id,
             })
                 .sort({ sentAt: -1 })
-                .populate('senderId');
+                .populate('senderId')
+                .populate('listing');
 
             return {
                 ...conversation,
@@ -204,7 +205,7 @@ const getMessagesForConversation = async (conversationId: string, userId: string
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId');
+    const messages = await Message.find({ conversationId }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId').populate('listing');
     const totalMessages = await Message.countDocuments({ conversationId });
     const totalPages = Math.ceil(totalMessages / limit);
 
@@ -245,7 +246,7 @@ const findOrCreateConversation = async (participantAId: string, participantBId: 
         { isRead: true },
     );
 
-    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId');
+    const messages = await Message.find({ conversationId: conversation._id }).sort({ sentAt: -1 }).skip(skip).limit(limit).populate('senderId').populate('listing');
     const totalMessages = await Message.countDocuments({ conversationId: conversation._id });
     const totalPages = Math.ceil(totalMessages / limit);
 
