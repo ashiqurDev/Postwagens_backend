@@ -45,18 +45,74 @@ const createNotification = async (payload: INotification) => {
   return notification;
 };
 
-const getNotificationsForUser = async (userId: string) => {
-  const notifications = await Notification.find({ userId }).sort({ createdAt: -1 }).lean();
+const getNotificationsForUser = async (
+  userId: string,
+  query: {
+    type?: string;
+    page?: number;
+    limit?: number;
+  },
+) => {
+  const { type, page = 1, limit = 10 } = query;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const findQuery: any = { userId };
+
+  if (type) {
+    findQuery.type = type;
+  }
+
+  const notifications = await Notification.find(findQuery)
+    .populate({
+      path: 'userId',
+      select: 'fullName profileImage',
+    })
+    .populate({
+      path: 'actorId',
+      select: 'fullName profileImage',
+    })
+    .populate({
+      path: 'entity.postId',
+    })
+    .populate({
+      path: 'entity.commentId',
+    })
+    .populate({
+      path: 'entity.likeId',
+    })
+    .populate({
+      path: 'entity.listingId',
+    })
+    .populate({
+      path: 'entity.followId',
+    })
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
+
+  const total = await Notification.countDocuments(findQuery);
+  const totalPages = Math.ceil(total / limit);
+
   const notificationsWithMessages = await Promise.all(
     notifications.map(async (notification) => {
-      const message = await NotificationHelper.generateNotificationMessage(notification);
+      const message =
+        await NotificationHelper.generateNotificationMessage(notification);
       return {
         ...notification,
         message,
       };
     }),
   );
-  return notificationsWithMessages;
+  return {
+    data: notificationsWithMessages,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 };
 
 const markAsRead = async (notificationId: string) => {

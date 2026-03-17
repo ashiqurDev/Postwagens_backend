@@ -2,7 +2,8 @@ import { INotification } from './notifications.interface';
 import User from '../users/user.model';
 
 const generateNotificationMessage = async (notification: INotification): Promise<string> => {
-    const actor = await User.findById(notification.actorId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const actor = notification.actorId as any;
     if (!actor) {
         return 'Unknown action';
     }

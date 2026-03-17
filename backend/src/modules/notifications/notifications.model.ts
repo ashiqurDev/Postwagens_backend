@@ -10,7 +10,7 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
     },
     targetRole: {
       type: String,
@@ -18,7 +18,7 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
     },
     actorId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: true,
     },
     type: {
@@ -27,7 +27,36 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
       required: true,
     },
     entity: {
-      type: Object,
+      paymentId: {
+        type: Schema.Types.ObjectId,
+      },
+      amount: {
+        type: Number,
+      },
+      userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      postId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Post',
+      },
+      commentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Comment',
+      },
+      likeId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Like',
+      },
+      listingId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Listing',
+      },
+      followId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Follow',
+      },
     },
     isRead: {
       type: Boolean,

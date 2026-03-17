@@ -9,6 +9,9 @@ import {
   uploadBufferToCloudinary,
 } from '../../config/cloudinary.config';
 import mongoose from 'mongoose';
+import { Follow } from '../follow/follow.model';
+import { NotificationService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notifications.interface';
 
 // Create Listing
 const createListingService = async (
@@ -36,6 +39,21 @@ const createListingService = async (
   }
 
   const listing = await Listing.create(payload);
+
+  const followers = await Follow.find({ following: user.userId });
+
+  for (const follow of followers) {
+    await NotificationService.createNotification({
+      userId: follow.follower,
+      actorId: user.userId,
+      type: NotificationType.LISTING,
+      entity: {
+        listingId: listing._id,
+      },
+      isRead: false,
+    });
+  }
+
   return listing;
 };
 
